@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#B22222">
+<title>NW Schede OCR – Silewalking</title>
+<link rel="manifest" href="data:application/json,{%22name%22:%22NW%20Schede%20OCR%22,%22short_name%22:%22NW%20OCR%22,%22theme_color%22:%22%23B22222%22,%22background_color%22:%22%23ffffff%22,%22display%22:%22standalone%22}">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #B22222;
+    --red-dark: #8B1A1A;
+    --red-light: #F8E8E8;
+    --red-mid: #D94040;
+    --white: #ffffff;
+    --gray-50: #F9F9F9;
+    --gray-100: #F0F0F0;
+    --gray-200: #E0E0E0;
+    --gray-400: #9E9E9E;
+    --gray-600: #555;
+    --gray-800: #222;
+    --green: #2E7D32;
+    --green-light: #E8F5E9;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--red);
+    color: white;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    box-shadow: 0 2px 8px rgba(178,34,34,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 11px; opacity: 0.8; display: block; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .badge-count {
+    background: white;
+    color: var(--red);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: none;
+  }
+  .btn-key {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-key:hover { background: rgba(255,255,255,0.3); }
+
+  /* MAIN */
+  main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+  /* API KEY PANEL */
+  #apiPanel {
+    background: white;
+    border: 2px solid var(--red-light);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  #apiPanel h2 { font-size: 17px; margin-bottom: 8px; }
+  #apiPanel p { font-size: 13px; color: var(--gray-600); margin-bottom: 1.2rem; }
+  #apiPanel p a { color: var(--red); }
+  .api-input-row { display: flex; gap: 8px; max-width: 500px; margin: 0 auto; }
+  .api-input-row input {
+    flex: 1; border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm); padding: 9px 12px;
+    font-size: 14px; font-family: monospace;
+    transition: border-color 0.15s;
+  }
+  .api-input-row input:focus { outline: none; border-color: var(--red); }
+
+  /* SESSIONE INFO */
+  .session-bar {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .session-stats { display: flex; gap: 1.5rem; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; color: var(--red); line-height: 1; }
+  .stat-lbl { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .session-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--red); color: white; border-color: var(--red); }
+  .btn-primary:hover { background: var(--red-dark); }
+  .btn-primary:disabled { background: var(--gray-400); border-color: var(--gray-400); cursor: not-allowed; transform: none; }
+  .btn-outline { background: white; color: var(--gray-800); border-color: var(--gray-200); }
+  .btn-outline:hover { border-color: var(--gray-400); background: var(--gray-50); }
+  .btn-success { background: var(--green); color: white; border-color: var(--green); }
+  .btn-success:hover { background: #1B5E20; }
+  .btn-ghost { background: transparent; color: var(--gray-600); border-color: transparent; font-size: 12px; }
+  .btn-ghost:hover { color: var(--red); }
+  .btn-danger { background: white; color: var(--red); border-color: var(--red-light); }
+  .btn-danger:hover { background: var(--red-light); }
+
+  /* UPLOAD CARD */
+  .upload-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.25rem;
+  }
+  .upload-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .step-badge {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--red); color: white;
+    font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--gray-200);
+    border-radius: var(--radius);
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.over {
+    border-color: var(--red);
+    background: var(--red-light);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-icon { font-size: 36px; margin-bottom: 10px; }
+  .drop-main { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .drop-sub { font-size: 13px; color: var(--gray-400); }
+
+  /* PREVIEW ROW */
+  .preview-row {
+    display: flex; gap: 1rem; align-items: flex-start;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .preview-img {
+    width: 160px; flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200);
+    object-fit: contain;
+    max-height: 200px;
+  }
+  .preview-info { flex: 1; min-width: 200px; }
+  .preview-name { font-size: 13px; color: var(--gray-600); margin-bottom: 12px; word-break: break-all; }
+  .societa-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .societa-row label { font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .societa-row input {
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+    padding: 6px 10px; font-size: 13px; flex: 1; min-width: 160px;
+    transition: border-color 0.15s;
+  }
+  .societa-row input:focus { outline: none; border-color: var(--red); }
+
+  /* STATUS */
+  .status-box {
+    display: none; align-items: center; gap: 10px;
+    margin-top: 12px; padding: 10px 14px;
+    background: var(--red-light); border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--red-dark);
+  }
+  .spinner {
+    width: 18px; height: 18px; flex-shrink: 0;
+    border: 2.5px solid rgba(178,34,34,0.2);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box {
+    display: none;
+    margin-top: 12px; padding: 10px 14px;
+    background: #FFF3E0; border-radius: var(--radius-sm);
+    font-size: 13px; color: #E65100;
+  }
+
+  /* TABLE SECTION */
+  .table-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  .table-header {
+    background: var(--red);
+    color: white;
+    padding: 10px 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .table-title { font-size: 14px; font-weight: 600; }
+  .table-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-white { background: white; color: var(--red); border-color: white; }
+  .btn-white:hover { background: var(--red-light); }
+  .btn-white-outline { background: transparent; color: white; border-color: rgba(255,255,255,0.5); }
+  .btn-white-outline:hover { background: rgba(255,255,255,0.15); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+  thead th {
+    background: var(--gray-50);
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-600);
+    border-bottom: 1.5px solid var(--gray-200);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--gray-100); transition: background 0.1s; }
+  tbody tr:hover { background: var(--gray-50); }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 6px 8px; vertical-align: middle; }
+  td.num { color: var(--gray-400); font-size: 12px; text-align: center; width: 32px; }
+  td input[type="text"] {
+    border: none; background: transparent;
+    font-size: 13px; color: var(--gray-800);
+    width: 100%; padding: 3px 4px;
+    border-radius: 3px;
+    transition: background 0.1s, box-shadow 0.1s;
+    font-family: inherit;
+  }
+  td input[type="text"]:focus {
+    outline: none;
+    background: var(--red-light);
+    box-shadow: 0 0 0 2px rgba(178,34,34,0.15);
+  }
+  td.check { text-align: center; width: 60px; }
+  input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
+  td.societa-col { max-width: 120px; }
+  td.action-col { width: 36px; text-align: center; }
+  .btn-del {
+    background: none; border: none; cursor: pointer;
+    color: var(--gray-400); font-size: 16px; line-height: 1;
+    padding: 2px 4px; border-radius: 3px;
+    transition: color 0.15s;
+  }
+  .btn-del:hover { color: var(--red); }
+
+  .taglia-input { max-width: 48px !important; text-align: center; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 3rem 1rem;
+    color: var(--gray-400);
+  }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* MODAL */
+  .modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-size: 16px; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--gray-600); margin-bottom: 1.25rem; line-height: 1.6; }
+  .modal-input {
+    width: 100%; border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm); padding: 10px 12px;
+    font-size: 14px; margin-bottom: 1rem;
+    font-family: monospace;
+    transition: border-color 0.15s;
+  }
+  .modal-input:focus { outline: none; border-color: var(--red); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--gray-800); color: white;
+    padding: 10px 20px; border-radius: 20px; font-size: 13px;
+    transition: transform 0.3s; z-index: 300;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--green); }
+  .toast.error { background: #C62828; }
+
+  /* FOOTER */
+  footer {
+    text-align: center; padding: 1rem;
+    font-size: 11px; color: var(--gray-400);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🚶</div>
+    <div>
+      <span class="logo-text">NW Schede OCR</span>
+      <span class="logo-sub">Silewalking Albaredo</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge-count" id="badgeCount">0 partecipanti</span>
+    <button class="btn-key" onclick="openKeyModal()">🔑 API Key</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- API KEY PANEL -->
+  <div id="apiPanel">
+    <h2>🔑 Inserisci la tua API Key Gemini</h2>
+    <p>Necessaria per il riconoscimento automatico delle schede.<br>
+       Ottienila su <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a> (gratuita).</p>
+    <div class="api-input-row">
+      <input type="password" id="apiKeyInput" placeholder="AIza..." autocomplete="off">
+      <button class="btn btn-primary" onclick="saveApiKey()">Salva</button>
+    </div>
+  </div>
+
+  <!-- SESSION BAR -->
+  <div class="session-bar" id="sessionBar" style="display:none;">
+    <div class="session-stats">
+      <div class="stat">
+        <div class="stat-num" id="statTotale">0</div>
+        <div class="stat-lbl">Partecipanti</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statPraticanti">0</div>
+        <div class="stat-lbl">Praticanti</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statIstruttori">0</div>
+        <div class="stat-lbl">Istruttori</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statMiglio">0</div>
+        <div class="stat-lbl">Miglio Rosso</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statSchede">0</div>
+        <div class="stat-lbl">Schede</div>
+      </div>
+    </div>
+    <div class="session-actions">
+      <button class="btn btn-success" onclick="exportCSV()">⬇ Esporta CSV</button>
+      <button class="btn btn-outline" onclick="exportExcel()">⬇ Excel</button>
+      <button class="btn btn-danger btn-sm" onclick="clearAll()">🗑 Svuota sessione</button>
+    </div>
+  </div>
+
+  <!-- UPLOAD CARD -->
+  <div class="upload-card" id="uploadCard">
+    <h3><span class="step-badge">1</span> Carica la foto della scheda</h3>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="image/*">
+      <div class="drop-icon">📷</div>
+      <div class="drop-main">Clicca qui o trascina la foto</div>
+      <div class="drop-sub">JPG, PNG, WEBP — qualsiasi foto da cellulare o scanner</div>
+    </div>
+
+    <div class="preview-row" id="previewRow" style="display:none;">
+      <img id="previewImg" class="preview-img" src="" alt="Anteprima scheda">
+      <div class="preview-info">
+        <div class="preview-name" id="previewName"></div>
+        <div class="societa-row">
+          <label for="societaInput">Società (opzionale):</label>
+          <input type="text" id="societaInput" placeholder="Es. ASD Treviso Nordic" autocomplete="off">
+        </div>
+        <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeImage()">
+          🔍 Analizza con AI
+        </button>
+        <button class="btn btn-ghost" onclick="cancelPreview()" style="margin-left:4px;">Annulla</button>
+        <div class="status-box" id="statusBox">
+          <div class="spinner"></div>
+          <span id="statusText">Lettura in corso…</span>
+        </div>
+        <div class="error-box" id="errorBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE SECTION -->
+  <div class="table-card" id="tableCard" style="display:none;">
+    <div class="table-header">
+      <div class="table-title">📋 Partecipanti — Sessione corrente</div>
+      <div class="table-actions">
+        <button class="btn btn-sm btn-white-outline" onclick="addRow()">+ Riga</button>
+        <button class="btn btn-sm btn-white" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn btn-sm btn-white-outline" onclick="exportExcel()">⬇ Excel</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px;">#</th>
+            <th style="width:110px;">Cognome</th>
+            <th style="width:90px;">Nome</th>
+            <th style="width:80px;">Nato il</th>
+            <th style="width:120px;">Città</th>
+            <th style="width:52px;">Taglia</th>
+            <th style="width:62px; text-align:center;">Pratic.</th>
+            <th style="width:62px; text-align:center;">Istrut.</th>
+            <th style="width:68px; text-align:center;">Miglio R.</th>
+            <th style="width:120px;">Società</th>
+            <th style="width:36px;"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-icon">📋</div>
+      <p>Nessun partecipante ancora.<br>Carica una scheda per iniziare.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.0</footer>
+
+<!-- API KEY MODAL -->
+<div class="modal-backdrop" id="keyModal">
+  <div class="modal">
+    <h3>🔑 API Key Gemini</h3>
+    <p>La chiave viene salvata solo sul tuo browser (localStorage) e non viene mai inviata a terzi.<br>
+       <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--red);">Ottieni una chiave gratuita →</a></p>
+    <input type="password" class="modal-input" id="modalKeyInput" placeholder="AIza..." autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeKeyModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveApiKeyFromModal()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let allRows = [];       // tutti i partecipanti della sessione
+let imgBase64 = '';
+let imgMimeType = 'image/jpeg';
+let currentSocieta = '';
+let schedeCount = 0;
+
+// ============================================================
+// API KEY
+// ============================================================
+function getApiKey() { return localStorage.getItem('nw_gemini_key') || ''; }
+
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k) return toast('Inserisci una chiave valida', 'error');
+  localStorage.setItem('nw_gemini_key', k);
+  document.getElementById('apiPanel').style.display = 'none';
+  document.getElementById('sessionBar').style.display = 'flex';
+  document.getElementById('tableCard').style.display = 'block';
+  toast('Chiave salvata ✓', 'success');
+  renderTable();
+}
+
+function openKeyModal() {
+  document.getElementById('modalKeyInput').value = getApiKey();
+  document.getElementById('keyModal').classList.add('open');
+}
+function closeKeyModal() { document.getElementById('keyModal').classList.remove('open'); }
+function saveApiKeyFromModal() {
+  const k = document.getElementById('modalKeyInput').value.trim();
+  if (!k) return toast('Inserisci una chiave valida', 'error');
+  localStorage.setItem('nw_gemini_key', k);
+  closeKeyModal();
+  toast('Chiave aggiornata ✓', 'success');
+  checkApiKey();
+}
+
+function checkApiKey() {
+  const k = getApiKey();
+  if (k) {
+    document.getElementById('apiPanel').style.display = 'none';
+    document.getElementById('sessionBar').style.display = 'flex';
+    document.getElementById('tableCard').style.display = 'block';
+    renderTable();
+  }
+}
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('over');
+  handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) return toast('File non valido — usa JPG o PNG', 'error');
+  if (!getApiKey()) return toast('Salva prima la tua API Key', 'error');
+  imgMimeType = file.type;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    imgBase64 = dataUrl.split(',')[1];
+    document.getElementById('previewImg').src = dataUrl;
+    document.getElementById('previewName').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+    document.getElementById('previewRow').style.display = 'flex';
+    document.getElementById('statusBox').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'none';
+    document.getElementById('analyzeBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function cancelPreview() {
+  document.getElementById('previewRow').style.display = 'none';
+  fileInput.value = '';
+  imgBase64 = '';
+}
+
+// ============================================================
+// OCR con Gemini Vision
+// ============================================================
+async function analyzeImage() {
+  const key = getApiKey();
+  if (!key) return toast('Inserisci la API Key Gemini', 'error');
+  if (!imgBase64) return;
+
+  const btn = document.getElementById('analyzeBtn');
+  const statusBox = document.getElementById('statusBox');
+  const errorBox = document.getElementById('errorBox');
+  const statusText = document.getElementById('statusText');
+
+  btn.disabled = true;
+  statusBox.style.display = 'flex';
+  errorBox.style.display = 'none';
+  statusText.textContent = 'Lettura in corso…';
+  currentSocieta = document.getElementById('societaInput').value.trim();
+
+  const prompt = `Leggi questa scheda di iscrizione per un evento Nordic Walking.
+Estrai SOLO le righe della tabella che hanno cognome e nome compilati (salta le righe vuote).
+Colonne da estrarre: N (numero riga), Cognome, Nome, Nato il (data nascita), Città di residenza, Taglia (S/M/L/XL ecc.), Praticante (X = true), Istruttore (X = true), "Partecipa al Miglio Rosso" (colonna a destra con sfondo rosso, X = true).
+IMPORTANTE: se la cella Città contiene un apice/virgolette/simbolo di ripetizione ("), copia la città della riga precedente.
+Rispondi SOLO con un JSON array valido. Zero testo aggiuntivo. Zero backtick. Zero markdown.
+Formato: [{"n":1,"cognome":"...","nome":"...","nato_il":"gg.mm.aa","citta":"...","taglia":"...","praticante":true,"istruttore":false,"miglio_rosso":true}]
+Se una cella è illeggibile scrivi "?". Se una casella check è vuota, usa false.`;
+
+  try {
+    statusText.textContent = 'Comunicazione con Gemini…';
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: imgMimeType, data: imgBase64 } },
+              { text: prompt }
+            ]
+          }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+        })
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    statusText.textContent = 'Elaborazione…';
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const cleaned = rawText.replace(/```json|```/g, '').trim();
+
+    let parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch { throw new Error('Il modello non ha restituito un JSON valido. Riprova.'); }
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error('Nessun partecipante trovato. Controlla che la foto sia nitida e ben inquadrata.');
+    }
+
+    // Aggiungi società e offset numero
+    const offset = allRows.length;
+    parsed.forEach((r, i) => {
+      r.societa = currentSocieta || '';
+      r._id = Date.now() + i;
+      r.n = offset + i + 1;
+    });
+
+    allRows = allRows.concat(parsed);
+    schedeCount++;
+
+    statusBox.style.display = 'none';
+    btn.disabled = false;
+    document.getElementById('previewRow').style.display = 'none';
+    fileInput.value = '';
+    document.getElementById('societaInput').value = '';
+    imgBase64 = '';
+
+    renderTable();
+    updateStats();
+    toast(`${parsed.length} partecipanti aggiunti ✓`, 'success');
+
+  } catch(err) {
+    statusBox.style.display = 'none';
+    errorBox.style.display = 'block';
+    errorBox.textContent = '⚠ ' + err.message;
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+// TABLE
+// ============================================================
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const emptyState = document.getElementById('emptyState');
+
+  tbody.innerHTML = '';
+
+  if (allRows.length === 0) {
+    emptyState.style.display = 'block';
+    updateStats();
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  allRows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="num">${i+1}</td>
+      <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${i}].cognome=this.value"></td>
+      <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${i}].nome=this.value"></td>
+      <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${i}].nato_il=this.value" style="min-width:68px;"></td>
+      <td><input type="text" value="${esc(r.citta)}" onchange="allRows[${i}].citta=this.value"></td>
+      <td class="check"><input type="text" value="${esc(r.taglia)}" class="taglia-input" onchange="allRows[${i}].taglia=this.value" style="max-width:44px;text-align:center;"></td>
+      <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${i}].praticante=this.checked;updateStats()"></td>
+      <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${i}].istruttore=this.checked;updateStats()"></td>
+      <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${i}].miglio_rosso=this.checked;updateStats()"></td>
+      <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${i}].societa=this.value" placeholder="—"></td>
+      <td class="action-col"><button class="btn-del" onclick="deleteRow(${i})" title="Elimina">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateStats();
+}
+
+function esc(s) {
+  return (s || '').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function deleteRow(i) {
+  allRows.splice(i, 1);
+  allRows.forEach((r, j) => r.n = j+1);
+  renderTable();
+  toast('Riga eliminata');
+}
+
+function addRow() {
+  allRows.push({
+    n: allRows.length+1, cognome:'', nome:'', nato_il:'', citta:'',
+    taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'',
+    _id: Date.now()
+  });
+  renderTable();
+  const inputs = document.getElementById('tableBody').querySelectorAll('input[type="text"]');
+  if (inputs.length > 0) inputs[inputs.length - 5].focus();
+}
+
+function clearAll() {
+  if (!allRows.length) return;
+  if (!confirm(`Eliminare tutti i ${allRows.length} partecipanti dalla sessione?`)) return;
+  allRows = [];
+  schedeCount = 0;
+  renderTable();
+  toast('Sessione svuotata');
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const tot = allRows.length;
+  const prat = allRows.filter(r => r.praticante).length;
+  const istr = allRows.filter(r => r.istruttore).length;
+  const miglio = allRows.filter(r => r.miglio_rosso).length;
+
+  document.getElementById('statTotale').textContent = tot;
+  document.getElementById('statPraticanti').textContent = prat;
+  document.getElementById('statIstruttori').textContent = istr;
+  document.getElementById('statMiglio').textContent = miglio;
+  document.getElementById('statSchede').textContent = schedeCount;
+
+  const badge = document.getElementById('badgeCount');
+  if (tot > 0) { badge.style.display = 'inline-block'; badge.textContent = tot + ' part.'; }
+  else { badge.style.display = 'none'; }
+}
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+function exportCSV() {
+  if (!allRows.length) return toast('Nessun dato da esportare', 'error');
+  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
+  const rows = [headers.join(';')];
+  allRows.forEach(r => {
+    rows.push([
+      r.n, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
+    ].map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(';'));
+  });
+  const blob = new Blob(['\uFEFF' + rows.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+  downloadBlob(blob, 'NW_partecipanti_' + dateTag() + '.csv');
+  toast('CSV scaricato ✓', 'success');
+}
+
+// ============================================================
+// EXPORT EXCEL (XLSX via HTML table trick compatibile con Excel)
+// ============================================================
+function exportExcel() {
+  if (!allRows.length) return toast('Nessun dato da esportare', 'error');
+
+  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Partecipanti</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+  html += '<table border="1" style="border-collapse:collapse;">';
+
+  // Header row
+  html += '<tr style="background:#B22222;color:white;font-weight:bold;">';
+  headers.forEach(h => html += `<td style="padding:6px 10px;">${h}</td>`);
+  html += '</tr>';
+
+  // Data rows
+  allRows.forEach((r, i) => {
+    const bg = i % 2 === 0 ? '#FFFFFF' : '#F9F9F9';
+    html += `<tr style="background:${bg};">`;
+    [r.n, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+     r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
+    ].forEach(v => html += `<td style="padding:5px 10px;">${String(v||'')}</td>`);
+    html += '</tr>';
+  });
+  html += '</table></body></html>';
+
+  const blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8;'});
+  downloadBlob(blob, 'NW_partecipanti_' + dateTag() + '.xls');
+  toast('Excel scaricato ✓', 'success');
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function dateTag() {
+  const d = new Date();
+  return d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 2800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  checkApiKey();
+});
+
+// Close modal on backdrop click
+document.getElementById('keyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeKeyModal();
+});
+</script>
+</body>
+</html>
