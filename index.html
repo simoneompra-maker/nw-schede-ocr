@@ -1618,12 +1618,10 @@ function renderClassCam() {
     return;
   }
 
-  let pos = 0, prevTotal = -1, sameCount = 0;
   tbody.innerHTML = athletes.map((a, i) => {
     const total = getTotal(a.pettorale);
     const scores = getAthleteScores(a.pettorale);
-    if (total !== prevTotal) { pos = i+1; sameCount = 0; } else { sameCount++; }
-    prevTotal = total;
+    const pos = i+1;
     const badge = pos<=3 ? `<span class="rank-badge rank-${pos}">${pos}</span>` : `<span class="rank-badge rank-n">${pos}</span>`;
     const judgesCells = Array.from({length:10}, (_,j) =>
       `<td class="td-center td-mono" style="font-size:12px;color:var(--text-dim);">${scores[j+1]!==undefined?scores[j+1]:'—'}</td>`
@@ -1657,12 +1655,10 @@ function renderClassIst() {
     return;
   }
 
-  let pos = 0, prevTotal = -1;
   tbody.innerHTML = athletes.map((a, i) => {
     const total = getTotal(a.pettorale);
     const scores = getAthleteScores(a.pettorale);
-    if (total !== prevTotal) { pos = i+1; }
-    prevTotal = total;
+    const pos = i+1;
     const badge = pos<=3 ? `<span class="rank-badge rank-${pos}">${pos}</span>` : `<span class="rank-badge rank-n">${pos}</span>`;
     const judgesCells = Array.from({length:10}, (_,j) =>
       `<td class="td-center td-mono" style="font-size:12px;color:var(--text-dim);">${scores[j+1]!==undefined?scores[j+1]:'—'}</td>`
