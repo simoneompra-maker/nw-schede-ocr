@@ -789,45 +789,17 @@ tbody td {
 
         <!-- Slot 4 foto -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;" id="photo-slots">
-          <!-- Slot 1 -->
-          <div class="upload-zone" style="padding:16px;position:relative;" id="slot-zone-1">
-            <input type="file" accept="image/*" onchange="handleSlotFile(event,1)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
-            <div id="slot-preview-1" style="display:none;position:relative;">
-              <img id="slot-img-1" style="width:100%;max-height:100px;object-fit:contain;border-radius:4px;">
-              <button onclick="removeSlot(1)" style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:20px;text-align:center;">✕</button>
-              <div id="slot-status-1" style="font-size:10px;color:var(--text-dim);margin-top:4px;text-align:center;"></div>
-            </div>
-            <div id="slot-empty-1">
-              <div style="font-size:24px;">📸</div>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;"><strong>Pag. 1</strong><br>Pett. 1–50</div>
-            </div>
+          <!-- Multi-file upload zone -->
+          <div class="upload-zone" style="padding:20px;position:relative;" id="multi-upload-zone">
+            <input type="file" accept="image/*" multiple id="multi-file-input"
+              style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"
+              onchange="handleMultiFiles(event)">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text"><strong>Tocca o trascina</strong> le foto della scheda</div>
+            <div class="upload-text" style="margin-top:4px;font-size:11px;">Seleziona più file insieme (Pag.1, Pag.2, Pag.3)</div>
           </div>
-          <!-- Slot 2 -->
-          <div class="upload-zone" style="padding:16px;position:relative;" id="slot-zone-2">
-            <input type="file" accept="image/*" onchange="handleSlotFile(event,2)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
-            <div id="slot-preview-2" style="display:none;position:relative;">
-              <img id="slot-img-2" style="width:100%;max-height:100px;object-fit:contain;border-radius:4px;">
-              <button onclick="removeSlot(2)" style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:20px;text-align:center;">✕</button>
-              <div id="slot-status-2" style="font-size:10px;color:var(--text-dim);margin-top:4px;text-align:center;"></div>
-            </div>
-            <div id="slot-empty-2">
-              <div style="font-size:24px;">📸</div>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;"><strong>Pag. 2</strong><br>Pett. 51–100</div>
-            </div>
-          </div>
-          <!-- Slot 3 -->
-          <div class="upload-zone" style="padding:16px;position:relative;" id="slot-zone-3">
-            <input type="file" accept="image/*" onchange="handleSlotFile(event,3)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
-            <div id="slot-preview-3" style="display:none;position:relative;">
-              <img id="slot-img-3" style="width:100%;max-height:100px;object-fit:contain;border-radius:4px;">
-              <button onclick="removeSlot(3)" style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:20px;text-align:center;">✕</button>
-              <div id="slot-status-3" style="font-size:10px;color:var(--text-dim);margin-top:4px;text-align:center;"></div>
-            </div>
-            <div id="slot-empty-3">
-              <div style="font-size:24px;">📸</div>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;"><strong>Pag. 3</strong><br>Pett. 101–150</div>
-            </div>
-          </div>
+          <!-- Preview caricamenti -->
+          <div id="multi-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
         </div>
 
         <div style="text-align:center;">
@@ -1353,33 +1325,52 @@ function openJudgeModal(judgeId) {
   document.getElementById('modal-judge').classList.add('open');
 }
 
-// slotFiles: {1: File, 2: File, 3: File, 4: File}
+// slotFiles: {1: File, 2: File, ...} — populated from multi-file input
 let slotFiles = {};
 
-function handleSlotFile(event, slot) {
-  const file = event.target.files[0];
-  if (!file) return;
-  slotFiles[slot] = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('slot-empty-' + slot).style.display = 'none';
-    document.getElementById('slot-preview-' + slot).style.display = 'block';
-    document.getElementById('slot-img-' + slot).src = e.target.result;
-    document.getElementById('slot-status-' + slot).textContent = 'Pronta';
-    document.getElementById('btn-run-ocr').style.display = 'inline-flex';
-    document.getElementById('ocr-status').textContent = '';
-  };
-  reader.readAsDataURL(file);
+function handleMultiFiles(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  // Sort files by name (Pag.1 before Pag.2 etc.)
+  files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+
+  // Assign to slots in order
+  slotFiles = {};
+  files.forEach((file, i) => { slotFiles[i+1] = file; });
+
+  // Render previews
+  const container = document.getElementById('multi-previews');
+  container.innerHTML = '';
+  files.forEach((file, i) => {
+    const slot = i+1;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.id = 'slot-preview-' + slot;
+      div.style.cssText = 'position:relative;width:calc(33% - 6px);min-width:80px;';
+      div.innerHTML = `
+        <img src="${e.target.result}" style="width:100%;max-height:90px;object-fit:contain;border-radius:6px;border:1px solid var(--border);">
+        <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:2px;">Pag. ${slot}</div>
+        <div id="slot-status-${slot}" style="font-size:10px;text-align:center;"></div>
+        <button onclick="removeSlotFile(${slot})" style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center;">✕</button>
+      `;
+      container.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('btn-run-ocr').style.display = 'inline-flex';
+  document.getElementById('ocr-status').textContent = `${files.length} foto caricate`;
 }
 
-function removeSlot(slot) {
+function removeSlotFile(slot) {
   delete slotFiles[slot];
-  document.getElementById('slot-empty-' + slot).style.display = 'block';
-  document.getElementById('slot-preview-' + slot).style.display = 'none';
-  document.getElementById('slot-img-' + slot).src = '';
-  document.getElementById('slot-status-' + slot).textContent = '';
+  const el = document.getElementById('slot-preview-' + slot);
+  if (el) el.remove();
   if (Object.keys(slotFiles).length === 0) {
     document.getElementById('btn-run-ocr').style.display = 'none';
+    document.getElementById('ocr-status').textContent = '';
   }
 }
 
@@ -1525,16 +1516,10 @@ function backToUpload() {
 
 function resetSlots() {
   slotFiles = {};
-  for (let s=1; s<=3; s++) {
-    const ep = document.getElementById(`slot-empty-${s}`);
-    const pp = document.getElementById(`slot-preview-${s}`);
-    const si = document.getElementById(`slot-img-${s}`);
-    const ss = document.getElementById(`slot-status-${s}`);
-    if (ep) ep.style.display = 'block';
-    if (pp) pp.style.display = 'none';
-    if (si) si.src = '';
-    if (ss) ss.textContent = '';
-  }
+  const container = document.getElementById('multi-previews');
+  if (container) container.innerHTML = '';
+  const inp = document.getElementById('multi-file-input');
+  if (inp) inp.value = '';
   const btn = document.getElementById('btn-run-ocr');
   if (btn) btn.style.display = 'none';
   const st = document.getElementById('ocr-status');
