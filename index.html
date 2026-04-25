@@ -515,10 +515,6 @@ tbody td {
     </button>
   </div>
   <div class="nav-actions" style="display:flex;align-items:center;gap:8px;">
-    <div id="autosave-indicator" style="font-size:11px;color:rgba(255,255,255,0.6);white-space:nowrap;display:none;">
-      <span id="autosave-text">✓ Salvato</span>
-    </div>
-    <button class="btn-icon" onclick="exportJSON()" title="Backup JSON">💾</button>
     <button class="btn-icon" onclick="openSettings()" title="Configurazione">⚙️</button>
   </div>
 </nav>
@@ -672,7 +668,7 @@ tbody td {
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>POS</th><th>Squadra (ASD)</th><th class="td-right">Best Istruttore</th><th class="td-right">Top 4 Camm.</th><th class="td-right">Totale Squadra</th>
+            <th>POS</th><th>Squadra (ASD) — Componenti</th><th class="td-right">Ist.</th><th class="td-right">Camm.</th><th class="td-right">Totale</th>
           </tr></thead>
           <tbody id="tbody-squ"></tbody>
         </table>
@@ -1719,32 +1715,40 @@ function renderClassSqu() {
     const top4 = sortedCam.slice(0, 4);
     const camScore = top4.reduce((s,a) => s + getTotal(a.pettorale), 0);
 
+    const total = istScore + camScore;
+    // Escludi squadre senza alcun punteggio
+    if (total === 0) continue;
+
     squadre.push({
-      asd,
-      istScore,
-      camScore,
-      total: istScore + camScore,
-      bestIstName: bestIst ? `${bestIst.cognome} ${bestIst.nome}` : '—',
-      top4Names: top4.map(a => `${a.cognome} ${a.nome}`).join(', ')
+      asd, istScore, camScore, total,
+      bestIstName: bestIst ? `${bestIst.cognome} ${bestIst.nome} (${istScore})` : '— (nessun istruttore)',
+      top4Names: top4.length > 0
+        ? top4.map(a => `${a.cognome} ${a.nome} (${getTotal(a.pettorale)})`).join('<br>')
+        : '—'
     });
   }
 
   squadre.sort((a,b) => b.total - a.total);
 
   if (squadre.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">🏟️</div><p>Nessuna squadra</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">🏟️</div><p>Nessuna squadra con punteggi</p></div></td></tr>`;
     return;
   }
 
   tbody.innerHTML = squadre.map((s, i) => {
     const pos = i+1;
     const badge = pos<=3 ? `<span class="rank-badge rank-${pos}">${pos}</span>` : `<span class="rank-badge rank-n">${pos}</span>`;
+    const trofeo = pos===1 ? ' 🏆' : '';
     return `<tr>
       <td class="td-center">${badge}</td>
-      <td style="font-weight:600;">${s.asd}</td>
-      <td class="td-right td-mono">${s.istScore||'—'}</td>
+      <td>
+        <div style="font-weight:700;font-size:14px;">${s.asd}${trofeo}</div>
+        <div style="font-size:11px;color:var(--red);margin-top:2px;">👨‍🏫 ${s.bestIstName}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">🚶 ${s.top4Names}</div>
+      </td>
+      <td class="td-right td-mono" style="color:var(--gold);font-weight:700;">${s.istScore||'—'}</td>
       <td class="td-right td-mono">${s.camScore||'—'}</td>
-      <td class="td-right td-mono" style="font-weight:700;font-size:15px;">${s.total||'—'}</td>
+      <td class="td-right td-mono" style="font-weight:800;font-size:16px;color:var(--red);">${s.total}</td>
     </tr>`;
   }).join('');
 }
