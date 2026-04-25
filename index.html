@@ -3,868 +3,2098 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#B22222">
-<title>NW Schede OCR – Silewalking</title>
-<link rel="manifest" href="data:application/json,{%22name%22:%22NW%20Schede%20OCR%22,%22short_name%22:%22NW%20OCR%22,%22theme_color%22:%22%23B22222%22,%22background_color%22:%22%23ffffff%22,%22display%22:%22standalone%22}">
+<title>Miglio Rosso — Classifiche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f0f0f0;
+  --surface: #ffffff;
+  --surface2: #f5f5f5;
+  --surface3: #e8e8e8;
+  --border: #cccccc;
+  --red: #c0392b;
+  --red-bright: #a93226;
+  --red-dim: rgba(192,57,43,0.08);
+  --gold: #8a6a00;
+  --silver: #3d4a50;
+  --bronze: #6b3f1e;
+  --text: #111111;
+  --text-dim: #444444;
+  --text-muted: #888888;
+  --green: #1a6b35;
+  --yellow: #7d5a00;
+  --blue: #0d4f8c;
+  --radius: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.10);
+}
 
-  :root {
-    --red: #B22222;
-    --red-dark: #8B1A1A;
-    --red-light: #F8E8E8;
-    --red-mid: #D94040;
-    --white: #ffffff;
-    --gray-50: #F9F9F9;
-    --gray-100: #F0F0F0;
-    --gray-200: #E0E0E0;
-    --gray-400: #9E9E9E;
-    --gray-600: #555;
-    --gray-800: #222;
-    --green: #2E7D32;
-    --green-light: #E8F5E9;
-    --shadow: 0 2px 12px rgba(0,0,0,0.08);
-    --radius: 10px;
-    --radius-sm: 6px;
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: var(--gray-50);
-    color: var(--gray-800);
-    min-height: 100vh;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-  /* HEADER */
-  header {
-    background: var(--red);
-    color: white;
-    padding: 0 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 56px;
-    box-shadow: 0 2px 8px rgba(178,34,34,0.3);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-icon {
-    width: 34px; height: 34px;
-    background: white;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-  .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
-  .logo-sub { font-size: 11px; opacity: 0.8; display: block; }
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--red);
+  border-bottom: 3px solid var(--red-bright);
+  display: flex; align-items: center;
+  padding: 0 16px;
+  height: 58px;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: #ffffff;
+  letter-spacing: 3px;
+  margin-right: 20px;
+  white-space: nowrap;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+.nav-logo span { color: rgba(255,255,255,0.75); font-size: 13px; letter-spacing: 0; font-family: 'DM Sans', sans-serif; margin-left: 6px; }
+.nav-tabs { display: flex; gap: 2px; flex: 1; }
+.nav-tab {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: rgba(255,255,255,0.75);
+  font-weight: 600;
+  transition: all .15s;
+  font-size: 13px;
+  border: none; background: transparent;
+  display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.nav-tab:hover { color: #fff; background: rgba(255,255,255,0.15); }
+.nav-tab.active { color: #fff; background: rgba(0,0,0,0.2); border-bottom: 2px solid #fff; border-radius: 6px 6px 0 0; }
+.nav-tab .icon { font-size: 15px; }
+.nav-actions { display: flex; gap: 8px; margin-left: auto; }
+.btn-icon {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  cursor: pointer; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: all .15s;
+}
+.btn-icon:hover { background: rgba(255,255,255,0.3); }
 
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .badge-count {
-    background: white;
-    color: var(--red);
-    font-size: 12px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
-    display: none;
-  }
-  .btn-key {
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.4);
-    color: white;
-    font-size: 12px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-key:hover { background: rgba(255,255,255,0.3); }
+/* ── MAIN ── */
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
 
-  /* MAIN */
-  main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+/* ── SECTIONS ── */
+.section { display: none; }
+.section.active { display: block; }
 
-  /* API KEY PANEL */
-  #apiPanel {
-    background: white;
-    border: 2px solid var(--red-light);
-    border-radius: var(--radius);
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
-  #apiPanel h2 { font-size: 17px; margin-bottom: 8px; }
-  #apiPanel p { font-size: 13px; color: var(--gray-600); margin-bottom: 1.2rem; }
-  #apiPanel p a { color: var(--red); }
-  .api-input-row { display: flex; gap: 8px; max-width: 500px; margin: 0 auto; }
-  .api-input-row input {
-    flex: 1; border: 1.5px solid var(--gray-200);
-    border-radius: var(--radius-sm); padding: 9px 12px;
-    font-size: 14px; font-family: monospace;
-    transition: border-color 0.15s;
-  }
-  .api-input-row input:focus { outline: none; border-color: var(--red); }
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.page-title span { color: var(--red); }
 
-  /* SESSIONE INFO */
-  .session-bar {
-    background: white;
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: var(--shadow);
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .session-stats { display: flex; gap: 1.5rem; }
-  .stat { text-align: center; }
-  .stat-num { font-size: 22px; font-weight: 700; color: var(--red); line-height: 1; }
-  .stat-lbl { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
-  .session-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--red-dim);
+  padding-bottom: 8px;
+}
 
-  /* BUTTONS */
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 16px; border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    border: 1.5px solid transparent;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn:active { transform: scale(0.97); }
-  .btn-primary { background: var(--red); color: white; border-color: var(--red); }
-  .btn-primary:hover { background: var(--red-dark); }
-  .btn-primary:disabled { background: var(--gray-400); border-color: var(--gray-400); cursor: not-allowed; transform: none; }
-  .btn-outline { background: white; color: var(--gray-800); border-color: var(--gray-200); }
-  .btn-outline:hover { border-color: var(--gray-400); background: var(--gray-50); }
-  .btn-success { background: var(--green); color: white; border-color: var(--green); }
-  .btn-success:hover { background: #1B5E20; }
-  .btn-ghost { background: transparent; color: var(--gray-600); border-color: transparent; font-size: 12px; }
-  .btn-ghost:hover { color: var(--red); }
-  .btn-danger { background: white; color: var(--red); border-color: var(--red-light); }
-  .btn-danger:hover { background: var(--red-light); }
+/* ── FORM ELEMENTS ── */
+.form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
+.form-group label { font-size: 12px; color: var(--text-dim); font-weight: 600; letter-spacing: .5px; }
+input, select, textarea {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 9px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  transition: border-color .15s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+}
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+select option { background: #fff; color: var(--text); }
 
-  /* UPLOAD CARD */
-  .upload-card {
-    background: white;
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-    margin-bottom: 1.25rem;
-  }
-  .upload-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
-  .step-badge {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--red); color: white;
-    font-size: 11px; font-weight: 700;
-    display: inline-flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px;
+  border-radius: 6px;
+  border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 700;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--red); color: #fff; box-shadow: 0 2px 6px rgba(192,57,43,0.3); }
+.btn-primary:hover { background: #a93226; box-shadow: 0 3px 10px rgba(192,57,43,0.4); }
+.btn-secondary { background: #fff; color: var(--text); border: 1.5px solid var(--border); }
+.btn-secondary:hover { border-color: var(--red); color: var(--red); }
+.btn-ghost { background: transparent; color: var(--text-dim); border: 1.5px solid var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: #888; }
+.btn-danger { background: #fdf0ef; color: #c0392b; border: 1.5px solid #f5c6c2; }
+.btn-danger:hover { background: #fbe0de; border-color: var(--red); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-green { background: #edf7f1; color: var(--green); border: 1.5px solid #b8dfc9; }
+.btn-green:hover { background: #d5efdf; }
 
-  .drop-zone {
-    border: 2px dashed var(--gray-200);
-    border-radius: var(--radius);
-    padding: 2.5rem 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-  }
-  .drop-zone:hover, .drop-zone.over {
-    border-color: var(--red);
-    background: var(--red-light);
-  }
-  .drop-zone input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .drop-icon { font-size: 36px; margin-bottom: 10px; }
-  .drop-main { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .drop-sub { font-size: 13px; color: var(--gray-400); }
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: var(--red);
+  padding: 11px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+thead th:first-child { border-radius: 6px 0 0 0; }
+thead th:last-child { border-radius: 0 6px 0 0; }
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+tbody tr:nth-child(even) { background: var(--surface2); }
+tbody tr:hover { background: rgba(192,57,43,0.05); }
+tbody td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+.td-center { text-align: center; }
+.td-right { text-align: right; }
+.td-mono { font-variant-numeric: tabular-nums; }
 
-  /* PREVIEW ROW */
-  .preview-row {
-    display: flex; gap: 1rem; align-items: flex-start;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
-  .preview-img {
-    width: 160px; flex-shrink: 0;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--gray-200);
-    object-fit: contain;
-    max-height: 200px;
-  }
-  .preview-info { flex: 1; min-width: 200px; }
-  .preview-name { font-size: 13px; color: var(--gray-600); margin-bottom: 12px; word-break: break-all; }
-  .societa-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-  .societa-row label { font-size: 13px; font-weight: 500; white-space: nowrap; }
-  .societa-row input {
-    border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
-    padding: 6px 10px; font-size: 13px; flex: 1; min-width: 160px;
-    transition: border-color 0.15s;
-  }
-  .societa-row input:focus { outline: none; border-color: var(--red); }
+/* ── RANKING BADGE ── */
+.rank-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 13px;
+}
+.rank-1 { background: #d4a017; color: #fff; box-shadow: 0 2px 6px rgba(212,160,23,0.5); }
+.rank-2 { background: #707f88; color: #fff; }
+.rank-3 { background: #8c5c2e; color: #fff; }
+.rank-n { background: var(--surface3); color: var(--text-dim); font-size: 12px; }
 
-  /* STATUS */
-  .status-box {
-    display: none; align-items: center; gap: 10px;
-    margin-top: 12px; padding: 10px 14px;
-    background: var(--red-light); border-radius: var(--radius-sm);
-    font-size: 13px; color: var(--red-dark);
-  }
-  .spinner {
-    width: 18px; height: 18px; flex-shrink: 0;
-    border: 2.5px solid rgba(178,34,34,0.2);
-    border-top-color: var(--red);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .error-box {
-    display: none;
-    margin-top: 12px; padding: 10px 14px;
-    background: #FFF3E0; border-radius: var(--radius-sm);
-    font-size: 13px; color: #E65100;
-  }
+/* ── TABS ── */
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 20px;
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 4px;
+  width: fit-content;
+  box-shadow: var(--shadow);
+}
+.tab-btn {
+  padding: 8px 18px; border-radius: 6px; cursor: pointer;
+  border: none; background: transparent; color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  transition: all .15s;
+}
+.tab-btn.active { background: var(--red); color: #fff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-  /* TABLE SECTION */
-  .table-card {
-    background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 1.25rem;
-  }
-  .table-header {
-    background: var(--red);
-    color: white;
-    padding: 10px 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .table-title { font-size: 14px; font-weight: 600; }
-  .table-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-  .btn-sm { padding: 5px 12px; font-size: 12px; }
-  .btn-white { background: white; color: var(--red); border-color: white; }
-  .btn-white:hover { background: var(--red-light); }
-  .btn-white-outline { background: transparent; color: white; border-color: rgba(255,255,255,0.5); }
-  .btn-white-outline:hover { background: rgba(255,255,255,0.15); }
+/* ── STATUS BADGES ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.badge-ok { background: #e6f4ec; color: var(--green); border: 1px solid #b8dfc9; }
+.badge-warn { background: #fef9e7; color: var(--yellow); border: 1px solid #f7dc6f; }
+.badge-none { background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border); }
+.badge-blue { background: #eaf2fb; color: var(--blue); border: 1px solid #aed6f1; }
+.badge-red { background: #fdf0ef; color: var(--red); border: 1px solid #f5c6c2; }
 
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
-  thead th {
-    background: var(--gray-50);
-    padding: 8px 10px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--gray-600);
-    border-bottom: 1.5px solid var(--gray-200);
-    white-space: nowrap;
-  }
-  tbody tr { border-bottom: 1px solid var(--gray-100); transition: background 0.1s; }
-  tbody tr:hover { background: var(--gray-50); }
-  tbody tr:last-child { border-bottom: none; }
-  td { padding: 6px 8px; vertical-align: middle; }
-  td.num { color: var(--gray-400); font-size: 12px; text-align: center; width: 32px; }
-  td input[type="text"] {
-    border: none; background: transparent;
-    font-size: 13px; color: var(--gray-800);
-    width: 100%; padding: 3px 4px;
-    border-radius: 3px;
-    transition: background 0.1s, box-shadow 0.1s;
-    font-family: inherit;
-  }
-  td input[type="text"]:focus {
-    outline: none;
-    background: var(--red-light);
-    box-shadow: 0 0 0 2px rgba(178,34,34,0.15);
-  }
-  td.check { text-align: center; width: 60px; }
-  input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
-  td.societa-col { max-width: 120px; }
-  td.action-col { width: 36px; text-align: center; }
-  .btn-del {
-    background: none; border: none; cursor: pointer;
-    color: var(--gray-400); font-size: 16px; line-height: 1;
-    padding: 2px 4px; border-radius: 3px;
-    transition: color 0.15s;
-  }
-  .btn-del:hover { color: var(--red); }
+/* ── JUDGE CARDS GRID ── */
+.judges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.judge-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+  box-shadow: var(--shadow);
+}
+.judge-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+.judge-card.confirmed { border-color: #27ae60; }
+.judge-card.reviewing { border-color: #f39c12; }
+.judge-card-header {
+  background: var(--red);
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.judge-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+.judge-card-body { padding: 12px 14px; }
+.judge-criterion { font-size: 11px; color: var(--red); font-weight: 700; letter-spacing: .5px; margin-bottom: 4px; }
+.judge-name-display { font-size: 13px; color: var(--text); font-weight: 600; margin-bottom: 10px; }
+.judge-count { font-size: 11px; color: var(--text-dim); }
 
-  .taglia-input { max-width: 48px !important; text-align: center; }
+/* ── OCR REVIEW TABLE ── */
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.review-cell {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.review-cell.changed { border-color: #f39c12; background: #fef9e7; }
+.review-pet { font-size: 11px; color: var(--text-dim); font-weight: 700; width: 24px; flex-shrink: 0; }
+.review-input { background: transparent; border: none; color: var(--text); font-size: 14px; font-weight: 700; width: 40px; padding: 0; }
+.review-input:focus { outline: none; color: var(--red); }
 
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center; padding: 3rem 1rem;
-    color: var(--gray-400);
-  }
-  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; }
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.55);
+  display: none; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+}
+.modal-header {
+  padding: 18px 24px 16px;
+  background: var(--red);
+  border-radius: 10px 10px 0 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; color: #fff; }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 
-  /* MODAL */
-  .modal-backdrop {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal {
-    background: white;
-    border-radius: var(--radius);
-    padding: 1.75rem;
-    max-width: 440px;
-    width: 90%;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  }
-  .modal h3 { font-size: 16px; margin-bottom: 8px; }
-  .modal p { font-size: 13px; color: var(--gray-600); margin-bottom: 1.25rem; line-height: 1.6; }
-  .modal-input {
-    width: 100%; border: 1.5px solid var(--gray-200);
-    border-radius: var(--radius-sm); padding: 10px 12px;
-    font-size: 14px; margin-bottom: 1rem;
-    font-family: monospace;
-    transition: border-color 0.15s;
-  }
-  .modal-input:focus { outline: none; border-color: var(--red); }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+/* ── DRAG UPLOAD ── */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  background: var(--surface2);
+}
+.upload-zone:hover, .upload-zone.drag-over { border-color: var(--red); background: var(--red-dim); }
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 36px; margin-bottom: 8px; }
+.upload-text { color: var(--text-dim); font-size: 13px; }
+.upload-text strong { color: var(--text); }
 
-  /* TOAST */
-  .toast {
-    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: var(--gray-800); color: white;
-    padding: 10px 20px; border-radius: 20px; font-size: 13px;
-    transition: transform 0.3s; z-index: 300;
-    white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.success { background: var(--green); }
-  .toast.error { background: #C62828; }
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--red);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--red); letter-spacing: 1px; line-height: 1; }
+.stat-value.red { color: var(--red); }
+.stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: .5px; text-transform: uppercase; font-weight: 600; margin-top: 4px; }
 
-  /* FOOTER */
-  footer {
-    text-align: center; padding: 1rem;
-    font-size: 11px; color: var(--gray-400);
-  }
+/* ── PROGRESS BAR ── */
+.progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--red); border-radius: 3px; transition: width .3s; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 300;
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 12px 18px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  display: flex; align-items: center; gap: 10px;
+  transform: translateY(80px); opacity: 0;
+  transition: all .25s;
+  max-width: 320px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { border-color: #27ae60; border-left: 4px solid #27ae60; }
+#toast.error { border-color: var(--red); border-left: 4px solid var(--red); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 48px 16px;
+  color: var(--text-muted);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: .5; }
+.empty-state p { font-size: 14px; font-weight: 500; }
+
+/* ── TIEBREAK INFO ── */
+.tiebreak-note {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-dim); font-weight: 600;
+  background: var(--surface3); border-radius: 4px; padding: 4px 10px;
+  border: 1px solid var(--border);
+}
+
+/* ── PRINT ── */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; color: #000; font-family: Arial, sans-serif; }
+  nav, .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  main { max-width: none; padding: 0; margin: 0; }
+  .section { display: block !important; }
+  .section:not(#sec-classifiche) { display: none !important; }
+  #sec-classifiche .tabs,
+  #sec-classifiche .page-header .btn { display: none !important; }
+  .tab-content { display: block !important; page-break-after: always; }
+  table { font-size: 11px; }
+  .rank-badge { width: 20px; height: 20px; font-size: 10px; }
+  .card { border: none; padding: 0; box-shadow: none; }
+  .print-header { display: flex !important; }
+}
+.print-header {
+  display: none;
+  align-items: center; justify-content: space-between;
+  margin-bottom: 16px; padding-bottom: 12px;
+  border-bottom: 2px solid #c0392b;
+}
+.print-title { font-size: 18px; font-weight: bold; text-align: center; flex: 1; color: #c0392b; }
+.print-date { font-size: 11px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+/* ── LOADING SPINNER ── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--red-bright);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.7);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius);
+  gap: 10px; font-size: 13px; color: var(--text-dim);
+  z-index: 10;
+}
+
+/* ── IMAGE PREVIEW ── */
+.img-preview {
+  width: 100%; max-height: 200px; object-fit: contain;
+  border-radius: 6px; border: 1px solid var(--border);
+  margin-top: 8px; display: none;
+}
+.img-preview.show { display: block; }
+
+/* ── ATHLETE ROW ── */
+.ath-cat { font-size: 10px; font-weight: 700; letter-spacing: .5px; }
+.cat-C { color: var(--blue); }
+.cat-I { color: var(--gold); }
+
+/* ── SCORE CELL INPUT ── */
+.score-cell input {
+  width: 52px; text-align: center; padding: 4px 6px; font-size: 13px;
+}
+.score-total { font-weight: 700; font-size: 14px; color: var(--text); }
+
+/* ── CONFIG JUDGES TABLE ── */
+.judges-config { display: grid; gap: 8px; }
+.judge-config-row {
+  display: grid; grid-template-columns: 40px 1fr 1fr; gap: 8px; align-items: center;
+}
+.judge-config-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--red-bright); text-align: center; }
+
+/* ── WARNING BAR ── */
+.warning-bar {
+  background: rgba(241,196,15,.1); border: 1px solid rgba(241,196,15,.3);
+  border-radius: var(--radius); padding: 10px 16px;
+  font-size: 12px; color: var(--yellow);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <div class="logo-icon">🚶</div>
-    <div>
-      <span class="logo-text">NW Schede OCR</span>
-      <span class="logo-sub">Silewalking Albaredo</span>
-    </div>
-  </div>
-  <div class="header-right">
-    <span class="badge-count" id="badgeCount">0 partecipanti</span>
-    <button class="btn-key" onclick="openKeyModal()">🔑 API Key</button>
-  </div>
-</header>
+<!-- TOAST -->
+<div id="toast"></div>
 
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo">Miglio <span style="color:var(--red-bright);font-family:'Bebas Neue';font-size:22px;">Rosso</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('atleti')" id="tab-atleti">
+      <span class="icon">🏃</span> Atleti
+    </button>
+    <button class="nav-tab" onclick="showSection('giudici')" id="tab-giudici">
+      <span class="icon">📋</span> Giudici &amp; OCR
+    </button>
+    <button class="nav-tab" onclick="showSection('classifiche')" id="tab-classifiche">
+      <span class="icon">🏆</span> Classifiche
+    </button>
+    <button class="nav-tab" onclick="showSection('gestione')" id="tab-gestione">
+      <span class="icon">⚙️</span> Gestione
+    </button>
+  </div>
+  <div class="nav-actions" style="display:flex;align-items:center;gap:8px;">
+    <div id="autosave-indicator" style="font-size:11px;color:rgba(255,255,255,0.6);white-space:nowrap;display:none;">
+      <span id="autosave-text">✓ Salvato</span>
+    </div>
+    <button class="btn-icon" onclick="exportJSON()" title="Backup JSON">💾</button>
+    <button class="btn-icon" onclick="openSettings()" title="Configurazione">⚙️</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
 <main>
 
-  <!-- API KEY PANEL -->
-  <div id="apiPanel">
-    <h2>🔑 Inserisci la tua API Key Gemini</h2>
-    <p>Necessaria per il riconoscimento automatico delle schede.<br>
-       Ottienila su <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a> (gratuita).</p>
-    <div class="api-input-row">
-      <input type="password" id="apiKeyInput" placeholder="AIza..." autocomplete="off">
-      <button class="btn btn-primary" onclick="saveApiKey()">Salva</button>
-    </div>
+<!-- ══════════════════════════════════════════
+     SEZIONE: ATLETI
+══════════════════════════════════════════ -->
+<div class="section active" id="sec-atleti">
+  <div class="stats-row" id="stats-atleti"></div>
+
+  <div class="page-header">
+    <div class="page-title">ATLETI <span>REGISTRATI</span></div>
+    <button class="btn btn-primary" onclick="openAtletaModal()">+ Aggiungi atleta</button>
   </div>
 
-  <!-- SESSION BAR -->
-  <div class="session-bar" id="sessionBar" style="display:none;">
-    <div class="session-stats">
-      <div class="stat">
-        <div class="stat-num" id="statTotale">0</div>
-        <div class="stat-lbl">Partecipanti</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" id="statPraticanti">0</div>
-        <div class="stat-lbl">Praticanti</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" id="statIstruttori">0</div>
-        <div class="stat-lbl">Istruttori</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" id="statMiglio">0</div>
-        <div class="stat-lbl">Miglio Rosso</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" id="statSchede">0</div>
-        <div class="stat-lbl">Schede</div>
-      </div>
-    </div>
-    <div class="session-actions">
-      <button class="btn btn-success" onclick="exportCSV()">⬇ Esporta CSV</button>
-      <button class="btn btn-outline" onclick="exportExcel()">⬇ Excel</button>
-      <button class="btn btn-danger btn-sm" onclick="clearAll()">🗑 Svuota sessione</button>
-    </div>
-  </div>
-
-  <!-- UPLOAD CARD -->
-  <div class="upload-card" id="uploadCard">
-    <h3><span class="step-badge">1</span> Carica la foto della scheda</h3>
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="fileInput" accept="image/*">
-      <div class="drop-icon">📷</div>
-      <div class="drop-main">Clicca qui o trascina la foto</div>
-      <div class="drop-sub">JPG, PNG, WEBP — qualsiasi foto da cellulare o scanner</div>
-    </div>
-
-    <div class="preview-row" id="previewRow" style="display:none;">
-      <img id="previewImg" class="preview-img" src="" alt="Anteprima scheda">
-      <div class="preview-info">
-        <div class="preview-name" id="previewName"></div>
-        <div class="societa-row">
-          <label for="societaInput">Società (opzionale):</label>
-          <input type="text" id="societaInput" placeholder="Es. ASD Treviso Nordic" autocomplete="off">
-        </div>
-        <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeImage()">
-          🔍 Analizza con AI
-        </button>
-        <button class="btn btn-ghost" onclick="cancelPreview()" style="margin-left:4px;">Annulla</button>
-        <div class="status-box" id="statusBox">
-          <div class="spinner"></div>
-          <span id="statusText">Lettura in corso…</span>
-        </div>
-        <div class="error-box" id="errorBox"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TABLE SECTION -->
-  <div class="table-card" id="tableCard" style="display:none;">
-    <div class="table-header">
-      <div class="table-title">📋 Partecipanti — Sessione corrente</div>
-      <div class="table-actions">
-        <button class="btn btn-sm btn-white-outline" onclick="addRow()">+ Riga</button>
-        <button class="btn btn-sm btn-white" onclick="exportCSV()">⬇ CSV</button>
-        <button class="btn btn-sm btn-white-outline" onclick="exportExcel()">⬇ Excel</button>
-      </div>
+  <div class="card">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+      <input type="search" id="search-atleti" placeholder="🔍  Cerca nome, cognome, pettorale, ASD…" style="max-width:320px;" oninput="renderAtleti()">
+      <select id="filter-cat" onchange="renderAtleti()" style="width:auto;">
+        <option value="">Tutte le categorie</option>
+        <option value="C">Camminatori</option>
+        <option value="I">Istruttori</option>
+      </select>
+      <select id="filter-asd" onchange="renderAtleti()" style="width:auto;">
+        <option value="">Tutte le ASD</option>
+      </select>
     </div>
     <div class="table-wrap">
-      <table>
+      <table id="tbl-atleti">
         <thead>
           <tr>
-            <th style="width:32px;">#</th>
-            <th style="width:110px;">Cognome</th>
-            <th style="width:90px;">Nome</th>
-            <th style="width:80px;">Nato il</th>
-            <th style="width:120px;">Città</th>
-            <th style="width:52px;">Taglia</th>
-            <th style="width:62px; text-align:center;">Pratic.</th>
-            <th style="width:62px; text-align:center;">Istrut.</th>
-            <th style="width:68px; text-align:center;">Miglio R.</th>
-            <th style="width:120px;">Società</th>
-            <th style="width:36px;"></th>
+            <th>Pett.</th>
+            <th>Nominativo</th>
+            <th>ASD</th>
+            <th>Cat.</th>
+            <th>Voti</th>
+            <th>Totale</th>
+            <th style="width:80px;"></th>
           </tr>
         </thead>
-        <tbody id="tableBody">
-        </tbody>
+        <tbody id="tbody-atleti"></tbody>
       </table>
-    </div>
-    <div class="empty-state" id="emptyState" style="display:none;">
-      <div class="empty-icon">📋</div>
-      <p>Nessun partecipante ancora.<br>Carica una scheda per iniziare.</p>
-    </div>
-  </div>
-
-</main>
-
-<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.0</footer>
-
-<!-- API KEY MODAL -->
-<div class="modal-backdrop" id="keyModal">
-  <div class="modal">
-    <h3>🔑 API Key Gemini</h3>
-    <p>La chiave viene salvata solo sul tuo browser (localStorage) e non viene mai inviata a terzi.<br>
-       <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--red);">Ottieni una chiave gratuita →</a></p>
-    <input type="password" class="modal-input" id="modalKeyInput" placeholder="AIza..." autocomplete="off">
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeKeyModal()">Annulla</button>
-      <button class="btn btn-primary" onclick="saveApiKeyFromModal()">Salva</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+<!-- ══════════════════════════════════════════
+     SEZIONE: GIUDICI & OCR
+══════════════════════════════════════════ -->
+<div class="section" id="sec-giudici">
+  <div class="page-header">
+    <div class="page-title">GIUDICI <span>&amp; OCR</span></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary" onclick="clearAllJudgeScores()" id="btn-clear-all">🗑 Reset voti</button>
+    </div>
+  </div>
 
+  <div id="warn-apikey" class="warning-bar" style="display:none;">
+    ⚠️ <strong>Chiave API Gemini non configurata.</strong> Aprire le impostazioni (⚙️) per inserirla prima di usare l'OCR.
+  </div>
+
+  <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="font-size:12px;color:var(--text-dim);">Avanzamento:</div>
+    <div id="judge-progress-text" style="font-size:12px;color:var(--text);font-weight:600;"></div>
+    <div style="flex:1;max-width:300px;"><div class="progress-bar"><div class="progress-fill" id="judge-progress-bar" style="width:0%"></div></div></div>
+  </div>
+
+  <div class="judges-grid" id="judges-grid"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SEZIONE: CLASSIFICHE
+══════════════════════════════════════════ -->
+<div class="section" id="sec-classifiche">
+  <div class="page-header">
+    <div class="page-title">CLASSI<span>FICHE</span></div>
+    <button class="btn btn-secondary no-print" onclick="window.print()">🖨️ Stampa</button>
+  </div>
+
+  <div class="tabs no-print">
+    <button class="tab-btn active" onclick="showClassTab('camminatori')">🚶 Camminatori</button>
+    <button class="tab-btn" onclick="showClassTab('istruttori')">👨‍🏫 Istruttori</button>
+    <button class="tab-btn" onclick="showClassTab('squadre')">🏟️ Squadre</button>
+  </div>
+
+  <!-- Camminatori -->
+  <div class="tab-content active" id="class-camminatori">
+    <div class="print-header">
+      <div class="print-date" id="print-date-cam"></div>
+      <div class="print-title">CLASSIFICA CAMMINATORI</div>
+      <div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div class="card-title" style="margin:0;">CLASSIFICA CAMMINATORI</div>
+        <span class="tiebreak-note">⚖️ Spareggio: G3+G7+G10 → G2+G6 → G9 → G8 → G1 → G5 → G4</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>POS</th><th>Pett.</th><th>Nominativo</th><th>ASD</th>
+            <th id="th-cam-judges"></th>
+            <th>Totale</th>
+          </tr></thead>
+          <tbody id="tbody-cam"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Istruttori -->
+  <div class="tab-content" id="class-istruttori">
+    <div class="print-header">
+      <div class="print-date" id="print-date-ist"></div>
+      <div class="print-title">CLASSIFICA ISTRUTTORI</div>
+      <div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div class="card-title" style="margin:0;">CLASSIFICA ISTRUTTORI</div>
+        <span class="tiebreak-note">⚖️ Spareggio: G3+G7+G10 → G2+G6 → G9 → G8 → G1 → G5 → G4</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>POS</th><th>Pett.</th><th>Nominativo</th><th>ASD</th>
+            <th id="th-ist-judges"></th>
+            <th>Totale</th>
+          </tr></thead>
+          <tbody id="tbody-ist"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Squadre -->
+  <div class="tab-content" id="class-squadre">
+    <div class="print-header">
+      <div class="print-date" id="print-date-squ"></div>
+      <div class="print-title">CLASSIFICA SQUADRE</div>
+      <div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div class="card-title" style="margin:0;">CLASSIFICA SQUADRE</div>
+        <span class="tiebreak-note">🏆 Miglior Istruttore + 4 migliori Camminatori</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>POS</th><th>Squadra (ASD)</th><th class="td-right">Best Istruttore</th><th class="td-right">Top 4 Camm.</th><th class="td-right">Totale Squadra</th>
+          </tr></thead>
+          <tbody id="tbody-squ"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SEZIONE: GESTIONE
+══════════════════════════════════════════ -->
+<div class="section" id="sec-gestione">
+  <div class="page-title" style="margin-bottom:24px;">GESTIONE <span style="color:var(--red-bright);">DATI</span></div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+    <div class="card">
+      <div class="card-title">Backup &amp; Ripristino</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-secondary" onclick="exportJSON()">⬇️ Esporta dati JSON</button>
+        <button class="btn btn-secondary" onclick="triggerImport()">⬆️ Importa dati JSON</button>
+        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importJSON(event)">
+        <div style="border-top:1px solid var(--border);margin:4px 0;"></div>
+        <button class="btn btn-green" onclick="triggerImportXLSX()">📊 Importa atleti da Excel</button>
+        <input type="file" id="import-xlsx-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importXLSX(event)">
+        <div style="font-size:11px;color:var(--text-dim);">Formato: Pettorale | Cognome | Nome | ASD | Categoria</div>
+        <div style="border-top:1px solid var(--border);margin:4px 0;"></div>
+        <button class="btn btn-secondary" onclick="triggerImportScoresXLSX()">📊 Importa punteggi da Excel</button>
+        <input type="file" id="import-scores-xlsx" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importScoresXLSX(event)">
+        <div style="font-size:11px;color:var(--text-dim);">Formato: Pettorale | G1 | G2 | … | G10</div>
+        <button class="btn btn-secondary" onclick="exportScoresXLSX()">⬇️ Esporta punteggi Excel</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Edizione corrente</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:12px;color:var(--text-dim);">Anno edizione</div>
+        <input type="text" id="edition-year" placeholder="es. 2026" style="max-width:120px;">
+        <div style="font-size:12px;color:var(--text-dim);">Luogo/Data evento</div>
+        <input type="text" id="edition-info" placeholder="es. Albaredo, 16 maggio 2026">
+        <button class="btn btn-secondary btn-sm" onclick="saveEditionInfo()">Salva</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--red-bright);">Zona pericolosa</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-danger" onclick="resetAtleti()">🗑 Elimina tutti gli atleti</button>
+        <button class="btn btn-danger" onclick="resetScores()">🗑 Elimina tutti i punteggi</button>
+        <button class="btn btn-danger" onclick="resetAll()">⚠️ Reset completo edizione</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main><!-- end main -->
+
+<!-- ══════════════════════════════════════════
+     MODAL: AGGIUNGI/MODIFICA ATLETA
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-atleta">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-atleta-title">NUOVO ATLETA</div>
+      <button class="btn-icon" onclick="closeModal('modal-atleta')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" style="max-width:100px;">
+          <label>Nr. Pettorale *</label>
+          <input type="number" id="inp-pettorale" min="1" max="999" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" id="inp-nome" placeholder="Mario">
+        </div>
+        <div class="form-group">
+          <label>Cognome *</label>
+          <input type="text" id="inp-cognome" placeholder="Rossi">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>ASD / Società *</label>
+          <input type="text" id="inp-asd" placeholder="KINESIS CONEGLIANO" list="asd-suggestions">
+          <datalist id="asd-suggestions"></datalist>
+        </div>
+        <div class="form-group" style="max-width:160px;">
+          <label>Categoria *</label>
+          <select id="inp-cat">
+            <option value="C">Camminatore</option>
+            <option value="I">Istruttore</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-atleta')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveAtleta()">Salva atleta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: VOTI GIUDICE (OCR + REVISIONE)
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-judge">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-judge-title">GIUDICE</div>
+      <button class="btn-icon" onclick="closeModal('modal-judge')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="judge-modal-step1">
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">
+          Carica fino a <strong>4 foto</strong> della scheda (una per pagina). Gemini le leggerà tutte e aggregherà i punteggi.
+        </p>
+
+        <!-- Slot 4 foto -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;" id="photo-slots">
+          <!-- Slot 1 -->
+          <div class="upload-zone" style="padding:16px;position:relative;" id="slot-zone-1">
+            <input type="file" accept="image/*" onchange="handleSlotFile(event,1)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+            <div id="slot-preview-1" style="display:none;position:relative;">
+              <img id="slot-img-1" style="width:100%;max-height:100px;object-fit:contain;border-radius:4px;">
+              <button onclick="removeSlot(1)" style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:20px;text-align:center;">✕</button>
+              <div id="slot-status-1" style="font-size:10px;color:var(--text-dim);margin-top:4px;text-align:center;"></div>
+            </div>
+            <div id="slot-empty-1">
+              <div style="font-size:24px;">📸</div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;"><strong>Pag. 1</strong><br>Pett. 1–50</div>
+            </div>
+          </div>
+          <!-- Slot 2 -->
+          <div class="upload-zone" style="padding:16px;position:relative;" id="slot-zone-2">
+            <input type="file" accept="image/*" onchange="handleSlotFile(event,2)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+            <div id="slot-preview-2" style="display:none;position:relative;">
+              <img id="slot-img-2" style="width:100%;max-height:100px;object-fit:contain;border-radius:4px;">
+              <button onclick="removeSlot(2)" style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:20px;text-align:center;">✕</button>
+              <div id="slot-status-2" style="font-size:10px;color:var(--text-dim);margin-top:4px;text-align:center;"></div>
+            </div>
+            <div id="slot-empty-2">
+              <div style="font-size:24px;">📸</div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;"><strong>Pag. 2</strong><br>Pett. 51–100</div>
+            </div>
+          </div>
+          <!-- Slot 3 -->
+          <div class="upload-zone" style="padding:16px;position:relative;" id="slot-zone-3">
+            <input type="file" accept="image/*" onchange="handleSlotFile(event,3)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+            <div id="slot-preview-3" style="display:none;position:relative;">
+              <img id="slot-img-3" style="width:100%;max-height:100px;object-fit:contain;border-radius:4px;">
+              <button onclick="removeSlot(3)" style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;line-height:20px;text-align:center;">✕</button>
+              <div id="slot-status-3" style="font-size:10px;color:var(--text-dim);margin-top:4px;text-align:center;"></div>
+            </div>
+            <div id="slot-empty-3">
+              <div style="font-size:24px;">📸</div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;"><strong>Pag. 3</strong><br>Pett. 101–150</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;">
+          <button class="btn btn-primary" id="btn-run-ocr" onclick="runOCR()" style="display:none;">🔍 Avvia OCR con Gemini</button>
+          <div id="ocr-status" style="font-size:12px;color:var(--text-dim);margin-top:8px;min-height:18px;"></div>
+        </div>
+      </div>
+
+      <div id="judge-modal-step2" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">✅ OCR completato — <span id="ocr-count">0</span> pettorali letti</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">Verifica i valori. Clicca su un numero per correggerlo.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="backToUpload()">← Ricarica foto</button>
+        </div>
+        <div class="review-grid" id="review-grid"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="addManualEntry()">+ Aggiungi manuale</button>
+        </div>
+      </div>
+
+      <!-- Input manuale diretto (senza OCR) -->
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">OPPURE: inserimento manuale rapido (pettorale → punti)</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="number" id="manual-pet" placeholder="Pett." style="width:70px;" min="1">
+          <input type="number" id="manual-pts" placeholder="Punti" style="width:70px;" min="0" max="100">
+          <button class="btn btn-secondary btn-sm" onclick="addManualScore()">Aggiungi</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-judge')">Annulla</button>
+      <button class="btn btn-primary" onclick="confirmJudgeScores()">✓ Conferma voti</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: SETTINGS
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ IMPOSTAZIONI</div>
+      <button class="btn-icon" onclick="closeModal('modal-settings')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="card-title">Chiave API Gemini</div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Google Gemini API Key</label>
+        <input type="password" id="inp-apikey" placeholder="AIza…">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Usata per l'OCR delle schede cartacee. Non viene mai inviata a server diversi da Google.</div>
+      </div>
+
+      <div class="card-title" style="margin-bottom:12px;">Configurazione Giudici</div>
+      <div class="judges-config" id="judges-config-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Salva impostazioni</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: PUNTEGGI DIRETTI ATLETA
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-scores">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-scores-title">PUNTEGGI</div>
+      <button class="btn-icon" onclick="closeModal('modal-scores')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="scores-grid"></div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:12px;color:var(--text-dim);">Totale: <strong id="scores-total" style="color:var(--text);font-size:16px;">—</strong></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-scores')">Chiudi</button>
+      <button class="btn btn-primary" onclick="saveAtletaScores()">Salva punteggi</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ============================================================
-// STATE
-// ============================================================
-let allRows = [];       // tutti i partecipanti della sessione
-let imgBase64 = '';
-let imgMimeType = 'image/jpeg';
-let currentSocieta = '';
-let schedeCount = 0;
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'miglio_rosso_v1';
 
-// ============================================================
-// API KEY
-// ============================================================
-function getApiKey() { return localStorage.getItem('nw_gemini_key') || ''; }
+let state = {
+  apiKey: '',
+  editionYear: new Date().getFullYear().toString(),
+  editionInfo: '',
+  judges: [
+    {id:1,  name:'', criterion:'Allineamento frontale e laterale'},
+    {id:2,  name:'', criterion:'Luce, braccia e spinta'},
+    {id:3,  name:'', criterion:'Eleganza ed armonia del gesto'},
+    {id:4,  name:'', criterion:'Parallelo a 3'},
+    {id:5,  name:'', criterion:'Parallelo a 2'},
+    {id:6,  name:'', criterion:'Luce, braccia e spinta'},
+    {id:7,  name:'', criterion:'Eleganza ed armonia del gesto'},
+    {id:8,  name:'', criterion:'Polso e apertura mano'},
+    {id:9,  name:'', criterion:'Passo ampio e rullata'},
+    {id:10, name:'', criterion:'Eleganza ed armonia del gesto'},
+  ],
+  athletes: [],   // {pettorale, nome, cognome, asd, cat}
+  scores: {},     // {pettorale: {judgeId: score}}
+  judgeStatus: {} // {judgeId: 'none'|'confirmed'}
+};
 
-function saveApiKey() {
-  const k = document.getElementById('apiKeyInput').value.trim();
-  if (!k) return toast('Inserisci una chiave valida', 'error');
-  localStorage.setItem('nw_gemini_key', k);
-  document.getElementById('apiPanel').style.display = 'none';
-  document.getElementById('sessionBar').style.display = 'flex';
-  document.getElementById('tableCard').style.display = 'block';
-  toast('Chiave salvata ✓', 'success');
-  renderTable();
+// temp for judge modal
+let currentJudgeId = null;
+let pendingScores = {}; // {pettorale: score} from OCR/manual
+let editingAtletaPettorale = null;
+let editingAtletaScoresPettorale = null;
+
+// ── Load/Save ──
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) {
+      const parsed = JSON.parse(s);
+      state = { ...state, ...parsed };
+      // ensure judges array is always length 10
+      if (!state.judges || state.judges.length < 10) {
+        state.judges = Array.from({length:10}, (_,i) => ({
+          id: i+1,
+          name: state.judges?.[i]?.name || '',
+          criterion: state.judges?.[i]?.criterion || ''
+        }));
+      }
+    }
+  } catch(e) { console.warn('Load error', e); }
 }
 
-function openKeyModal() {
-  document.getElementById('modalKeyInput').value = getApiKey();
-  document.getElementById('keyModal').classList.add('open');
-}
-function closeKeyModal() { document.getElementById('keyModal').classList.remove('open'); }
-function saveApiKeyFromModal() {
-  const k = document.getElementById('modalKeyInput').value.trim();
-  if (!k) return toast('Inserisci una chiave valida', 'error');
-  localStorage.setItem('nw_gemini_key', k);
-  closeKeyModal();
-  toast('Chiave aggiornata ✓', 'success');
-  checkApiKey();
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  showAutosaveIndicator();
+  scheduleAutoBackup();
 }
 
-function checkApiKey() {
-  const k = getApiKey();
-  if (k) {
-    document.getElementById('apiPanel').style.display = 'none';
-    document.getElementById('sessionBar').style.display = 'flex';
-    document.getElementById('tableCard').style.display = 'block';
-    renderTable();
+function showAutosaveIndicator() {
+  const el = document.getElementById('autosave-indicator');
+  const txt = document.getElementById('autosave-text');
+  if (!el || !txt) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+  txt.textContent = `✓ Salvato ${time}`;
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  // Fade out after 4 seconds
+  clearTimeout(window._saveIndicatorTimer);
+  window._saveIndicatorTimer = setTimeout(() => {
+    el.style.transition = 'opacity 1s';
+    el.style.opacity = '0.4';
+  }, 4000);
+}
+
+// Auto-backup every 10 minutes if there are athletes
+let _autoBackupTimer = null;
+function scheduleAutoBackup() {
+  if (_autoBackupTimer) return; // already scheduled
+  _autoBackupTimer = setInterval(() => {
+    if (state.athletes.length === 0) return;
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const now = new Date();
+    const ts = now.toISOString().slice(0,16).replace('T','_').replace(':','h');
+    a.download = `backup_miglio_rosso_${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    const txt = document.getElementById('autosave-text');
+    if (txt) txt.textContent = `💾 Backup ${now.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}`;
+    const el = document.getElementById('autosave-indicator');
+    if (el) { el.style.opacity = '1'; el.style.display = 'block'; }
+  }, 10 * 60 * 1000); // ogni 10 minuti
+}
+
+// Warn before closing if data exists
+window.addEventListener('beforeunload', (e) => {
+  if (state.athletes.length > 0) {
+    e.preventDefault();
+    e.returnValue = 'Hai dati non esportati. Vuoi davvero uscire?';
+    return e.returnValue;
   }
+});
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'atleti') renderAtleti();
+  if (id === 'giudici') renderJudges();
+  if (id === 'classifiche') renderClassifiche();
+  if (id === 'gestione') renderGestione();
 }
 
-// ============================================================
-// FILE UPLOAD
-// ============================================================
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 3000);
+}
 
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('over');
-  handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+function getAthleteScores(pettorale) {
+  return state.scores[String(pettorale)] || {};
+}
 
-function handleFile(file) {
-  if (!file || !file.type.startsWith('image/')) return toast('File non valido — usa JPG o PNG', 'error');
-  if (!getApiKey()) return toast('Salva prima la tua API Key', 'error');
-  imgMimeType = file.type;
+function getTotal(pettorale) {
+  const s = getAthleteScores(pettorale);
+  return Object.values(s).reduce((a,b) => a+Number(b), 0);
+}
+
+function getJudgesSum(pettorale, judgeIds) {
+  const s = getAthleteScores(pettorale);
+  return judgeIds.reduce((sum, id) => sum + Number(s[id] || 0), 0);
+}
+
+// Spareggio 1: somma G3+G7+G10 (Eleganza ed armonia del gesto)
+function getTiebreak1(pettorale) {
+  return getJudgesSum(pettorale, [3, 7, 10]);
+}
+
+// Spareggio 2: somma G2+G6 (Luce, braccia e spinta)
+function getTiebreak2(pettorale) {
+  return getJudgesSum(pettorale, [2, 6]);
+}
+
+function getVoteCount(pettorale) {
+  return Object.keys(getAthleteScores(pettorale)).length;
+}
+
+function compareAthletes(a, b) {
+  const pa = a.pettorale, pb = b.pettorale;
+  // 1. Totale complessivo
+  const ta = getTotal(pa), tb = getTotal(pb);
+  if (ta !== tb) return tb - ta;
+  // 2. G3+G7+G10 — Eleganza ed armonia del gesto (3 giudici)
+  const s1a = getJudgesSum(pa,[3,7,10]), s1b = getJudgesSum(pb,[3,7,10]);
+  if (s1a !== s1b) return s1b - s1a;
+  // 3. G2+G6 — Luce, braccia e spinta (2 giudici)
+  const s2a = getJudgesSum(pa,[2,6]), s2b = getJudgesSum(pb,[2,6]);
+  if (s2a !== s2b) return s2b - s2a;
+  // 4. G9 — Passo ampio e rullata
+  const s3a = getJudgesSum(pa,[9]), s3b = getJudgesSum(pb,[9]);
+  if (s3a !== s3b) return s3b - s3a;
+  // 5. G8 — Polso e apertura mano
+  const s4a = getJudgesSum(pa,[8]), s4b = getJudgesSum(pb,[8]);
+  if (s4a !== s4b) return s4b - s4a;
+  // 6. G1 — Allineamento frontale e laterale
+  const s5a = getJudgesSum(pa,[1]), s5b = getJudgesSum(pb,[1]);
+  if (s5a !== s5b) return s5b - s5a;
+  // 7. G5 — Parallelo a 2
+  const s6a = getJudgesSum(pa,[5]), s6b = getJudgesSum(pb,[5]);
+  if (s6a !== s6b) return s6b - s6a;
+  // 8. G4 — Parallelo a 3 (ultimo, caso statisticamente impossibile)
+  return getJudgesSum(pb,[4]) - getJudgesSum(pa,[4]);
+}
+
+function getASDList() {
+  return [...new Set(state.athletes.map(a => a.asd).filter(Boolean))].sort();
+}
+
+// ══════════════════════════════════════════
+//  SEZIONE ATLETI
+// ══════════════════════════════════════════
+function renderAtleti() {
+  const search = (document.getElementById('search-atleti')?.value||'').toLowerCase();
+  const filterCat = document.getElementById('filter-cat')?.value||'';
+  const filterAsd = document.getElementById('filter-asd')?.value||'';
+
+  // Update ASD filter
+  const asdSelect = document.getElementById('filter-asd');
+  if (asdSelect) {
+    const curVal = asdSelect.value;
+    asdSelect.innerHTML = '<option value="">Tutte le ASD</option>' +
+      getASDList().map(a => `<option value="${a}" ${a===curVal?'selected':''}>${a}</option>`).join('');
+  }
+
+  // Update datalist
+  const dl = document.getElementById('asd-suggestions');
+  if (dl) dl.innerHTML = getASDList().map(a => `<option value="${a}">`).join('');
+
+  const filtered = state.athletes
+    .filter(a => {
+      if (filterCat && a.cat !== filterCat) return false;
+      if (filterAsd && a.asd !== filterAsd) return false;
+      if (search) {
+        const s = `${a.pettorale} ${a.nome} ${a.cognome} ${a.asd}`.toLowerCase();
+        if (!s.includes(search)) return false;
+      }
+      return true;
+    })
+    .sort((a,b) => a.pettorale - b.pettorale);
+
+  const tbody = document.getElementById('tbody-atleti');
+  if (!tbody) return;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7">
+      <div class="empty-state"><div class="icon">🏃</div><p>Nessun atleta trovato</p></div>
+    </td></tr>`;
+  } else {
+    tbody.innerHTML = filtered.map(a => {
+      const total = getTotal(a.pettorale);
+      const votes = getVoteCount(a.pettorale);
+      return `<tr>
+        <td class="td-mono" style="font-weight:700;">${a.pettorale}</td>
+        <td>${a.cognome.toUpperCase()} ${a.nome}</td>
+        <td style="font-size:12px;">${a.asd||'—'}</td>
+        <td><span class="ath-cat cat-${a.cat}">${a.cat==='I'?'IST':'CAM'}</span></td>
+        <td class="td-center">
+          <span class="badge ${votes===10?'badge-ok':votes>0?'badge-warn':'badge-none'}">${votes}/10</span>
+        </td>
+        <td class="td-mono" style="font-weight:700;color:${total>0?'var(--text)':'var(--text-muted)'};">${total||'—'}</td>
+        <td>
+          <div style="display:flex;gap:4px;justify-content:flex-end;">
+            <button class="btn btn-ghost btn-sm" onclick="openScoresModal(${a.pettorale})" title="Punteggi">📊</button>
+            <button class="btn btn-ghost btn-sm" onclick="openAtletaModal(${a.pettorale})" title="Modifica">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAtleta(${a.pettorale})" title="Elimina">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Stats
+  const cam = state.athletes.filter(a => a.cat==='C').length;
+  const ist = state.athletes.filter(a => a.cat==='I').length;
+  const withVotes = state.athletes.filter(a => getVoteCount(a.pettorale)>0).length;
+  const asds = new Set(state.athletes.map(a=>a.asd)).size;
+  document.getElementById('stats-atleti').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${state.athletes.length}</div><div class="stat-label">Atleti totali</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--blue);">${cam}</div><div class="stat-label">Camminatori</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--gold);">${ist}</div><div class="stat-label">Istruttori</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--green);">${withVotes}</div><div class="stat-label">Con punteggi</div></div>
+    <div class="stat-card"><div class="stat-value">${asds}</div><div class="stat-label">Squadre (ASD)</div></div>
+  `;
+}
+
+function openAtletaModal(pettorale=null) {
+  editingAtletaPettorale = pettorale;
+  const modal = document.getElementById('modal-atleta');
+  const title = document.getElementById('modal-atleta-title');
+
+  if (pettorale !== null) {
+    const a = state.athletes.find(x => x.pettorale === pettorale);
+    if (!a) return;
+    title.textContent = `MODIFICA ATLETA — PETT. ${pettorale}`;
+    document.getElementById('inp-pettorale').value = a.pettorale;
+    document.getElementById('inp-nome').value = a.nome;
+    document.getElementById('inp-cognome').value = a.cognome;
+    document.getElementById('inp-asd').value = a.asd;
+    document.getElementById('inp-cat').value = a.cat;
+  } else {
+    title.textContent = 'NUOVO ATLETA';
+    document.getElementById('inp-pettorale').value = '';
+    document.getElementById('inp-nome').value = '';
+    document.getElementById('inp-cognome').value = '';
+    document.getElementById('inp-asd').value = '';
+    document.getElementById('inp-cat').value = 'C';
+  }
+  // update datalist
+  const dl = document.getElementById('asd-suggestions');
+  if (dl) dl.innerHTML = getASDList().map(a => `<option value="${a}">`).join('');
+  modal.classList.add('open');
+}
+
+function saveAtleta() {
+  const pettorale = parseInt(document.getElementById('inp-pettorale').value);
+  const nome = document.getElementById('inp-nome').value.trim();
+  const cognome = document.getElementById('inp-cognome').value.trim();
+  const asd = document.getElementById('inp-asd').value.trim().toUpperCase();
+  const cat = document.getElementById('inp-cat').value;
+
+  if (!pettorale || !nome || !cognome) return toast('Compila pettorale, nome e cognome', 'error');
+
+  // Check duplicate pettorale
+  const existingIdx = state.athletes.findIndex(a => a.pettorale === pettorale);
+  if (existingIdx !== -1 && state.athletes[existingIdx].pettorale !== editingAtletaPettorale) {
+    return toast(`Pettorale ${pettorale} già esistente!`, 'error');
+  }
+
+  if (editingAtletaPettorale !== null) {
+    const idx = state.athletes.findIndex(a => a.pettorale === editingAtletaPettorale);
+    if (idx !== -1) {
+      // if pettorale changed, migrate scores
+      if (editingAtletaPettorale !== pettorale && state.scores[String(editingAtletaPettorale)]) {
+        state.scores[String(pettorale)] = state.scores[String(editingAtletaPettorale)];
+        delete state.scores[String(editingAtletaPettorale)];
+      }
+      state.athletes[idx] = { pettorale, nome, cognome, asd, cat };
+    }
+  } else {
+    state.athletes.push({ pettorale, nome, cognome, asd, cat });
+  }
+
+  saveState();
+  closeModal('modal-atleta');
+  renderAtleti();
+  toast(editingAtletaPettorale !== null ? 'Atleta aggiornato' : 'Atleta aggiunto');
+}
+
+function deleteAtleta(pettorale) {
+  if (!confirm(`Eliminare pettorale ${pettorale}? Anche i punteggi verranno cancellati.`)) return;
+  state.athletes = state.athletes.filter(a => a.pettorale !== pettorale);
+  delete state.scores[String(pettorale)];
+  saveState();
+  renderAtleti();
+  toast('Atleta eliminato');
+}
+
+// ── Punteggi diretti atleta ──
+function openScoresModal(pettorale) {
+  editingAtletaScoresPettorale = pettorale;
+  const a = state.athletes.find(x => x.pettorale === pettorale);
+  if (!a) return;
+  document.getElementById('modal-scores-title').textContent = `PUNTEGGI — ${a.cognome} ${a.nome} (Pett. ${pettorale})`;
+
+  const scores = getAthleteScores(pettorale);
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">';
+  for (let j=1; j<=10; j++) {
+    const jd = state.judges[j-1];
+    const val = scores[j] !== undefined ? scores[j] : '';
+    html += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;">
+      <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px;">
+        <span style="color:var(--red-bright);font-weight:700;">G${j}</span>
+        ${jd?.name ? `— ${jd.name}` : ''}
+        ${jd?.criterion ? `<div style="color:var(--text-muted);margin-top:2px;">${jd.criterion}</div>` : ''}
+      </div>
+      <input type="number" id="score-j${j}" value="${val}" min="0" max="100" placeholder="—" oninput="updateScoresTotal()">
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('scores-grid').innerHTML = html;
+  updateScoresTotal();
+  document.getElementById('modal-scores').classList.add('open');
+}
+
+function updateScoresTotal() {
+  let total = 0, count = 0;
+  for (let j=1; j<=10; j++) {
+    const v = document.getElementById(`score-j${j}`)?.value;
+    if (v !== '' && v !== undefined && v !== null) { total += Number(v); count++; }
+  }
+  const el = document.getElementById('scores-total');
+  if (el) el.textContent = count > 0 ? `${total} (${count} voti)` : '—';
+}
+
+function saveAtletaScores() {
+  const p = editingAtletaScoresPettorale;
+  if (!p) return;
+  if (!state.scores[String(p)]) state.scores[String(p)] = {};
+  for (let j=1; j<=10; j++) {
+    const inp = document.getElementById(`score-j${j}`);
+    if (!inp) continue;
+    const v = inp.value;
+    if (v === '' || v === null) {
+      delete state.scores[String(p)][j];
+    } else {
+      state.scores[String(p)][j] = Number(v);
+    }
+  }
+  saveState();
+  closeModal('modal-scores');
+  renderAtleti();
+  toast('Punteggi salvati');
+}
+
+// ══════════════════════════════════════════
+//  SEZIONE GIUDICI & OCR
+// ══════════════════════════════════════════
+function renderJudges() {
+  const apiKeyOk = !!state.apiKey;
+  document.getElementById('warn-apikey').style.display = apiKeyOk ? 'none' : 'flex';
+
+  const confirmed = state.judges.filter((_,i) => state.judgeStatus[i+1] === 'confirmed').length;
+  document.getElementById('judge-progress-text').textContent = `${confirmed}/10 giudici confermati`;
+  document.getElementById('judge-progress-bar').style.width = `${confirmed*10}%`;
+
+  const grid = document.getElementById('judges-grid');
+  grid.innerHTML = state.judges.map((j, i) => {
+    const status = state.judgeStatus[j.id] || 'none';
+    const scoreCount = countJudgeScores(j.id);
+    return `<div class="judge-card ${status==='confirmed'?'confirmed':status==='reviewing'?'reviewing':''}">
+      <div class="judge-card-header">
+        <span class="judge-num">G${j.id}</span>
+        <span class="badge ${status==='confirmed'?'badge-ok':status==='reviewing'?'badge-warn':'badge-none'}">
+          ${status==='confirmed'?'✓ Confermato':status==='reviewing'?'⏳ Da rivedere':'⬜ Non caricato'}
+        </span>
+      </div>
+      <div class="judge-card-body">
+        ${j.criterion ? `<div class="judge-criterion">${j.criterion}</div>` : ''}
+        <div class="judge-name-display">${j.name || '<span style="color:var(--text-muted);font-style:italic;">Nome non configurato</span>'}</div>
+        <div class="judge-count">${scoreCount} punteggi inseriti</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="openJudgeModal(${j.id})">
+            ${status==='confirmed'?'✏️ Modifica':'📸 Carica scheda'}
+          </button>
+          ${status!=='none'?`<button class="btn btn-danger btn-sm" onclick="clearJudgeScores(${j.id})">🗑</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function countJudgeScores(judgeId) {
+  let count = 0;
+  for (const pett of Object.keys(state.scores)) {
+    if (state.scores[pett][judgeId] !== undefined) count++;
+  }
+  return count;
+}
+
+function clearJudgeScores(judgeId) {
+  if (!confirm(`Eliminare tutti i punteggi del Giudice ${judgeId}?`)) return;
+  for (const pett of Object.keys(state.scores)) {
+    delete state.scores[pett][judgeId];
+  }
+  delete state.judgeStatus[judgeId];
+  saveState();
+  renderJudges();
+  toast(`Punteggi Giudice ${judgeId} eliminati`);
+}
+
+function clearAllJudgeScores() {
+  if (!confirm('Eliminare TUTTI i punteggi di tutti i giudici?')) return;
+  state.scores = {};
+  state.judgeStatus = {};
+  saveState();
+  renderJudges();
+  toast('Tutti i punteggi eliminati');
+}
+
+// ── JUDGE MODAL ──
+function openJudgeModal(judgeId) {
+  currentJudgeId = judgeId;
+  pendingScores = {};
+
+  const j = state.judges[judgeId-1];
+  document.getElementById('modal-judge-title').textContent =
+    `GIUDICE ${judgeId}${j.name?' — '+j.name:''}${j.criterion?' ('+j.criterion+')':''}`;
+
+  // Reset UI
+  document.getElementById('judge-modal-step1').style.display = 'block';
+  document.getElementById('judge-modal-step2').style.display = 'none';
+  resetSlots();
+  document.getElementById('manual-pet').value = '';
+  document.getElementById('manual-pts').value = '';
+
+  // Pre-populate pending from existing scores
+  for (const pett of Object.keys(state.scores)) {
+    if (state.scores[pett][judgeId] !== undefined) {
+      pendingScores[pett] = state.scores[pett][judgeId];
+    }
+  }
+
+  document.getElementById('modal-judge').classList.add('open');
+}
+
+// slotFiles: {1: File, 2: File, 3: File, 4: File}
+let slotFiles = {};
+
+function handleSlotFile(event, slot) {
+  const file = event.target.files[0];
+  if (!file) return;
+  slotFiles[slot] = file;
   const reader = new FileReader();
-  reader.onload = ev => {
-    const dataUrl = ev.target.result;
-    imgBase64 = dataUrl.split(',')[1];
-    document.getElementById('previewImg').src = dataUrl;
-    document.getElementById('previewName').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
-    document.getElementById('previewRow').style.display = 'flex';
-    document.getElementById('statusBox').style.display = 'none';
-    document.getElementById('errorBox').style.display = 'none';
-    document.getElementById('analyzeBtn').disabled = false;
+  reader.onload = e => {
+    document.getElementById('slot-empty-' + slot).style.display = 'none';
+    document.getElementById('slot-preview-' + slot).style.display = 'block';
+    document.getElementById('slot-img-' + slot).src = e.target.result;
+    document.getElementById('slot-status-' + slot).textContent = 'Pronta';
+    document.getElementById('btn-run-ocr').style.display = 'inline-flex';
+    document.getElementById('ocr-status').textContent = '';
   };
   reader.readAsDataURL(file);
 }
 
-function cancelPreview() {
-  document.getElementById('previewRow').style.display = 'none';
-  fileInput.value = '';
-  imgBase64 = '';
-}
-
-// ============================================================
-// OCR con Gemini Vision
-// ============================================================
-async function analyzeImage() {
-  const key = getApiKey();
-  if (!key) return toast('Inserisci la API Key Gemini', 'error');
-  if (!imgBase64) return;
-
-  const btn = document.getElementById('analyzeBtn');
-  const statusBox = document.getElementById('statusBox');
-  const errorBox = document.getElementById('errorBox');
-  const statusText = document.getElementById('statusText');
-
-  btn.disabled = true;
-  statusBox.style.display = 'flex';
-  errorBox.style.display = 'none';
-  statusText.textContent = 'Lettura in corso…';
-  currentSocieta = document.getElementById('societaInput').value.trim();
-
-  const prompt = `Leggi questa scheda di iscrizione per un evento Nordic Walking.
-Estrai SOLO le righe della tabella che hanno cognome e nome compilati (salta le righe vuote).
-Colonne da estrarre: N (numero riga), Cognome, Nome, Nato il (data nascita), Città di residenza, Taglia (S/M/L/XL ecc.), Praticante (X = true), Istruttore (X = true), "Partecipa al Miglio Rosso" (colonna a destra con sfondo rosso, X = true).
-IMPORTANTE: se la cella Città contiene un apice/virgolette/simbolo di ripetizione ("), copia la città della riga precedente.
-Rispondi SOLO con un JSON array valido. Zero testo aggiuntivo. Zero backtick. Zero markdown.
-Formato: [{"n":1,"cognome":"...","nome":"...","nato_il":"gg.mm.aa","citta":"...","taglia":"...","praticante":true,"istruttore":false,"miglio_rosso":true}]
-Se una cella è illeggibile scrivi "?". Se una casella check è vuota, usa false.`;
-
-  try {
-    statusText.textContent = 'Comunicazione con Gemini…';
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { inline_data: { mime_type: imgMimeType, data: imgBase64 } },
-              { text: prompt }
-            ]
-          }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
-        })
-      }
-    );
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.error?.message || `HTTP ${resp.status}`);
-    }
-
-    const data = await resp.json();
-    statusText.textContent = 'Elaborazione…';
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const cleaned = rawText.replace(/```json|```/g, '').trim();
-
-    let parsed;
-    try { parsed = JSON.parse(cleaned); }
-    catch { throw new Error('Il modello non ha restituito un JSON valido. Riprova.'); }
-
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('Nessun partecipante trovato. Controlla che la foto sia nitida e ben inquadrata.');
-    }
-
-    // Aggiungi società e offset numero
-    const offset = allRows.length;
-    parsed.forEach((r, i) => {
-      r.societa = currentSocieta || '';
-      r._id = Date.now() + i;
-      r.n = offset + i + 1;
-    });
-
-    allRows = allRows.concat(parsed);
-    schedeCount++;
-
-    statusBox.style.display = 'none';
-    btn.disabled = false;
-    document.getElementById('previewRow').style.display = 'none';
-    fileInput.value = '';
-    document.getElementById('societaInput').value = '';
-    imgBase64 = '';
-
-    renderTable();
-    updateStats();
-    toast(`${parsed.length} partecipanti aggiunti ✓`, 'success');
-
-  } catch(err) {
-    statusBox.style.display = 'none';
-    errorBox.style.display = 'block';
-    errorBox.textContent = '⚠ ' + err.message;
-    btn.disabled = false;
+function removeSlot(slot) {
+  delete slotFiles[slot];
+  document.getElementById('slot-empty-' + slot).style.display = 'block';
+  document.getElementById('slot-preview-' + slot).style.display = 'none';
+  document.getElementById('slot-img-' + slot).src = '';
+  document.getElementById('slot-status-' + slot).textContent = '';
+  if (Object.keys(slotFiles).length === 0) {
+    document.getElementById('btn-run-ocr').style.display = 'none';
   }
 }
 
-// ============================================================
-// TABLE
-// ============================================================
-function renderTable() {
-  const tbody = document.getElementById('tableBody');
-  const emptyState = document.getElementById('emptyState');
+async function runOCR() {
+  if (!state.apiKey) return toast('Configura prima la chiave API Gemini nelle impostazioni', 'error');
+  const loadedSlots = Object.keys(slotFiles).map(Number).sort((a,b)=>a-b);
+  if (loadedSlots.length === 0) return toast('Carica almeno una foto della scheda', 'error');
 
-  tbody.innerHTML = '';
+  const btn = document.getElementById('btn-run-ocr');
+  const status = document.getElementById('ocr-status');
+  btn.disabled = true;
+  let totalRead = 0, errors = [];
 
-  if (allRows.length === 0) {
-    emptyState.style.display = 'block';
-    updateStats();
+  const prompt = "Questa e una scheda di valutazione della gara di Nordic Walking Miglio Rosso.\n" +
+    "Per ogni pettorale ci sono 3 caselle C/D/U + una casella gialla CORR.\n" +
+    "C = centinaia (0 oppure 1 solo per punteggio 100)\n" +
+    "D = decine (0-9), U = unita (0-9)\n" +
+    "punteggio = C*100 + D*10 + U\n\n" +
+    "REGOLE DI LETTURA (in ordine di priorita):\n" +
+    "1. Riga tutta barrata E nessun numero scritto da nessuna parte sulla riga -> atleta ASSENTE, OMETTI.\n" +
+    "2. Riga tutta barrata MA c'e un numero scritto a mano sulla riga (dentro o fuori dalle caselle) -> usa QUEL numero come punteggio intero (il giudice ha corretto dopo aver barrato).\n" +
+    "3. Casella CORR. o numero scritto a mano sulla riga -> usa QUEL numero come punteggio intero, ignora C/D/U.\n" +
+    "4. Caselle C/D/U barrate singolarmente ma CORR. compilata -> usa il valore in CORR.\n" +
+    "5. Altrimenti leggi le cifre in C, D, U e calcola C*100 + D*10 + U.\n" +
+    "6. Riga completamente vuota -> atleta assente, OMETTI.\n" +
+    "7. Cifra illeggibile con certezza -> OMETTI il pettorale.\n\n" +
+    "Esempi:\n" +
+    "C=0 D=8 U=4 -> 84\n" +
+    "C=1 D=0 U=0 -> 100\n" +
+    "Riga barrata + nessun numero -> ometti (assente)\n" +
+    "Riga barrata + numero 76 scritto a fianco -> punteggio 76\n" +
+    "CORR. = 83 -> punteggio 83\n\n" +
+    "Restituisci SOLO un oggetto JSON valido: {\"1\": 84, \"2\": 70, \"3\": 100}\n" +
+    "Nessun testo prima o dopo. Nessun backtick. Nessun markdown.";
+
+  for (const slot of loadedSlots) {
+    const file = slotFiles[slot];
+    btn.innerHTML = `<div class="spinner"></div> Pagina ${slot}/${loadedSlots.length}…`;
+    status.textContent = `Analisi pagina ${slot} di ${loadedSlots.length}…`;
+    document.getElementById(`slot-status-${slot}`).textContent = '⏳ Analisi…';
+
+    try {
+      const base64 = await fileToBase64(file);
+      const mimeType = file.type || 'image/jpeg';
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${state.apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mimeType, data: base64 } }] }],
+            generationConfig: { temperature: 0.1 }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
+
+      for (const [pet, pts] of Object.entries(parsed)) {
+        pendingScores[String(pet)] = Number(pts);
+      }
+      totalRead += Object.keys(parsed).length;
+      document.getElementById(`slot-status-${slot}`).textContent = `✅ ${Object.keys(parsed).length} pettorali`;
+
+    } catch(e) {
+      console.error(`Slot ${slot}:`, e);
+      errors.push(`Pag.${slot}: ${e.message}`);
+      document.getElementById(`slot-status-${slot}`).textContent = '❌ Errore';
+    }
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🔍 Avvia OCR con Gemini';
+
+  if (totalRead === 0 && errors.length > 0) {
+    status.textContent = 'Errore: ' + errors.join(' | ');
+    toast('Errore OCR', 'error');
     return;
   }
-  emptyState.style.display = 'none';
+  if (errors.length > 0) toast(`⚠️ ${errors.length} pagina/e con errori`, 'error');
 
-  allRows.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="num">${i+1}</td>
-      <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${i}].cognome=this.value"></td>
-      <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${i}].nome=this.value"></td>
-      <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${i}].nato_il=this.value" style="min-width:68px;"></td>
-      <td><input type="text" value="${esc(r.citta)}" onchange="allRows[${i}].citta=this.value"></td>
-      <td class="check"><input type="text" value="${esc(r.taglia)}" class="taglia-input" onchange="allRows[${i}].taglia=this.value" style="max-width:44px;text-align:center;"></td>
-      <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${i}].praticante=this.checked;updateStats()"></td>
-      <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${i}].istruttore=this.checked;updateStats()"></td>
-      <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${i}].miglio_rosso=this.checked;updateStats()"></td>
-      <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${i}].societa=this.value" placeholder="—"></td>
-      <td class="action-col"><button class="btn-del" onclick="deleteRow(${i})" title="Elimina">✕</button></td>
-    `;
-    tbody.appendChild(tr);
+  showReviewStep(Object.keys(pendingScores).length);
+  status.textContent = errors.length > 0 ? `⚠️ ${errors.join(' | ')}` : '';
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function showReviewStep(count) {
+  document.getElementById('judge-modal-step1').style.display = 'none';
+  document.getElementById('judge-modal-step2').style.display = 'block';
+  document.getElementById('ocr-count').textContent = count;
+  renderReviewGrid();
+}
+
+function renderReviewGrid() {
+  const sorted = Object.entries(pendingScores).sort((a,b) => Number(a[0])-Number(b[0]));
+  const grid = document.getElementById('review-grid');
+  if (sorted.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-muted);font-size:12px;grid-column:1/-1;">Nessun punteggio inserito ancora</div>';
+    return;
+  }
+  grid.innerHTML = sorted.map(([pet, pts]) => `
+    <div class="review-cell" id="rc-${pet}">
+      <span class="review-pet">#${pet}</span>
+      <input class="review-input" type="number" min="0" max="100"
+        value="${pts}" id="ri-${pet}"
+        onchange="updatePending(${pet}, this.value)"
+        oninput="document.getElementById('rc-${pet}').classList.add('changed')">
+      <button onclick="removePending(${pet})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;margin-left:auto;">✕</button>
+    </div>`).join('');
+}
+
+function updatePending(pet, val) {
+  if (val === '' || val === null) delete pendingScores[String(pet)];
+  else pendingScores[String(pet)] = Number(val);
+}
+
+function removePending(pet) {
+  delete pendingScores[String(pet)];
+  renderReviewGrid();
+}
+
+function backToUpload() {
+  document.getElementById('judge-modal-step1').style.display = 'block';
+  document.getElementById('judge-modal-step2').style.display = 'none';
+}
+
+function resetSlots() {
+  slotFiles = {};
+  for (let s=1; s<=3; s++) {
+    const ep = document.getElementById(`slot-empty-${s}`);
+    const pp = document.getElementById(`slot-preview-${s}`);
+    const si = document.getElementById(`slot-img-${s}`);
+    const ss = document.getElementById(`slot-status-${s}`);
+    if (ep) ep.style.display = 'block';
+    if (pp) pp.style.display = 'none';
+    if (si) si.src = '';
+    if (ss) ss.textContent = '';
+  }
+  const btn = document.getElementById('btn-run-ocr');
+  if (btn) btn.style.display = 'none';
+  const st = document.getElementById('ocr-status');
+  if (st) st.textContent = '';
+}
+
+function addManualEntry() {
+  const newPet = prompt('Numero pettorale:');
+  if (!newPet) return;
+  const newPts = prompt('Punteggio (0-100):');
+  if (newPts === null) return;
+  pendingScores[String(parseInt(newPet))] = Number(newPts);
+  document.getElementById('ocr-count').textContent = Object.keys(pendingScores).length;
+  renderReviewGrid();
+}
+
+function addManualScore() {
+  const pet = document.getElementById('manual-pet').value;
+  const pts = document.getElementById('manual-pts').value;
+  if (!pet || pts === '') return toast('Inserisci pettorale e punti', 'error');
+  pendingScores[String(parseInt(pet))] = Number(pts);
+  document.getElementById('manual-pet').value = '';
+  document.getElementById('manual-pts').value = '';
+  document.getElementById('manual-pet').focus();
+
+  // If in step2 re-render; if in step1 show step2
+  if (document.getElementById('judge-modal-step2').style.display !== 'none') {
+    document.getElementById('ocr-count').textContent = Object.keys(pendingScores).length;
+    renderReviewGrid();
+  } else {
+    showReviewStep(Object.keys(pendingScores).length);
+  }
+  toast(`Pett. ${pet}: ${pts} punti aggiunto`);
+}
+
+function confirmJudgeScores() {
+  if (Object.keys(pendingScores).length === 0) {
+    return toast('Nessun punteggio da confermare', 'error');
+  }
+
+  // Write scores
+  for (const [pet, pts] of Object.entries(pendingScores)) {
+    if (!state.scores[pet]) state.scores[pet] = {};
+    state.scores[pet][currentJudgeId] = Number(pts);
+  }
+
+  state.judgeStatus[currentJudgeId] = 'confirmed';
+  saveState();
+  closeModal('modal-judge');
+  renderJudges();
+  toast(`Giudice ${currentJudgeId}: ${Object.keys(pendingScores).length} punteggi confermati`);
+}
+
+// ══════════════════════════════════════════
+//  SEZIONE CLASSIFICHE
+// ══════════════════════════════════════════
+let currentClassTab = 'camminatori';
+
+function showClassTab(id) {
+  currentClassTab = id;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick*="${id}"]`).classList.add('active');
+  document.getElementById('class-' + id).classList.add('active');
+  renderClassifiche();
+}
+
+function renderClassifiche() {
+  const dateStr = state.editionInfo || new Date().toLocaleDateString('it-IT');
+  ['print-date-cam','print-date-ist','print-date-squ'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = dateStr;
   });
 
-  updateStats();
+  renderClassCam();
+  renderClassIst();
+  renderClassSqu();
 }
 
-function esc(s) {
-  return (s || '').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function renderClassCam() {
+  const athletes = state.athletes.filter(a => a.cat === 'C' && getVoteCount(a.pettorale) > 0).sort(compareAthletes);
+  const tbody = document.getElementById('tbody-cam');
+  if (!tbody) return;
+
+  // Judge header columns
+  const thJudges = document.getElementById('th-cam-judges');
+  if (thJudges) {
+    thJudges.innerHTML = Array.from({length:10}, (_,i) => {
+      const j = state.judges[i];
+      return `<th class="td-center" style="font-size:10px;">G${i+1}<br><span style="font-weight:400;color:var(--text-muted);font-size:9px;">${j?.criterion?.substring(0,8)||''}</span></th>`;
+    }).join('');
+  }
+
+  if (athletes.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state"><div class="icon">🚶</div><p>Nessun camminatore registrato</p></div></td></tr>`;
+    return;
+  }
+
+  let pos = 0, prevTotal = -1, sameCount = 0;
+  tbody.innerHTML = athletes.map((a, i) => {
+    const total = getTotal(a.pettorale);
+    const scores = getAthleteScores(a.pettorale);
+    if (total !== prevTotal) { pos = i+1; sameCount = 0; } else { sameCount++; }
+    prevTotal = total;
+    const badge = pos<=3 ? `<span class="rank-badge rank-${pos}">${pos}</span>` : `<span class="rank-badge rank-n">${pos}</span>`;
+    const judgesCells = Array.from({length:10}, (_,j) =>
+      `<td class="td-center td-mono" style="font-size:12px;color:var(--text-dim);">${scores[j+1]!==undefined?scores[j+1]:'—'}</td>`
+    ).join('');
+    return `<tr>
+      <td class="td-center">${badge}</td>
+      <td class="td-mono" style="font-size:12px;color:var(--text-dim);">${a.pettorale}</td>
+      <td style="font-weight:500;">${a.cognome.toUpperCase()} ${a.nome}</td>
+      <td style="font-size:12px;">${a.asd||'—'}</td>
+      ${judgesCells}
+      <td class="td-mono td-right" style="font-weight:700;font-size:15px;">${total||'—'}</td>
+    </tr>`;
+  }).join('');
 }
 
-function deleteRow(i) {
-  allRows.splice(i, 1);
-  allRows.forEach((r, j) => r.n = j+1);
-  renderTable();
-  toast('Riga eliminata');
+function renderClassIst() {
+  const athletes = state.athletes.filter(a => a.cat === 'I' && getVoteCount(a.pettorale) > 0).sort(compareAthletes);
+  const tbody = document.getElementById('tbody-ist');
+  if (!tbody) return;
+
+  const thJudges = document.getElementById('th-ist-judges');
+  if (thJudges) {
+    thJudges.innerHTML = Array.from({length:10}, (_,i) => {
+      const j = state.judges[i];
+      return `<th class="td-center" style="font-size:10px;">G${i+1}<br><span style="font-weight:400;color:var(--text-muted);font-size:9px;">${j?.criterion?.substring(0,8)||''}</span></th>`;
+    }).join('');
+  }
+
+  if (athletes.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state"><div class="icon">👨‍🏫</div><p>Nessun istruttore registrato</p></div></td></tr>`;
+    return;
+  }
+
+  let pos = 0, prevTotal = -1;
+  tbody.innerHTML = athletes.map((a, i) => {
+    const total = getTotal(a.pettorale);
+    const scores = getAthleteScores(a.pettorale);
+    if (total !== prevTotal) { pos = i+1; }
+    prevTotal = total;
+    const badge = pos<=3 ? `<span class="rank-badge rank-${pos}">${pos}</span>` : `<span class="rank-badge rank-n">${pos}</span>`;
+    const judgesCells = Array.from({length:10}, (_,j) =>
+      `<td class="td-center td-mono" style="font-size:12px;color:var(--text-dim);">${scores[j+1]!==undefined?scores[j+1]:'—'}</td>`
+    ).join('');
+    return `<tr>
+      <td class="td-center">${badge}</td>
+      <td class="td-mono" style="font-size:12px;color:var(--text-dim);">${a.pettorale}</td>
+      <td style="font-weight:500;">${a.cognome.toUpperCase()} ${a.nome}</td>
+      <td style="font-size:12px;">${a.asd||'—'}</td>
+      ${judgesCells}
+      <td class="td-mono td-right" style="font-weight:700;font-size:15px;">${total||'—'}</td>
+    </tr>`;
+  }).join('');
 }
 
-function addRow() {
-  allRows.push({
-    n: allRows.length+1, cognome:'', nome:'', nato_il:'', citta:'',
-    taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'',
-    _id: Date.now()
-  });
-  renderTable();
-  const inputs = document.getElementById('tableBody').querySelectorAll('input[type="text"]');
-  if (inputs.length > 0) inputs[inputs.length - 5].focus();
+function renderClassSqu() {
+  const tbody = document.getElementById('tbody-squ');
+  if (!tbody) return;
+
+  const asdMap = {};
+  for (const a of state.athletes) {
+    if (!a.asd) continue;
+    if (!asdMap[a.asd]) asdMap[a.asd] = { istruttori: [], camminatori: [] };
+    if (a.cat === 'I') asdMap[a.asd].istruttori.push(a);
+    else asdMap[a.asd].camminatori.push(a);
+  }
+
+  const squadre = [];
+  for (const [asd, data] of Object.entries(asdMap)) {
+    const sortedIst = [...data.istruttori].filter(a => getVoteCount(a.pettorale) > 0).sort(compareAthletes);
+    const bestIst = sortedIst[0];
+    const istScore = bestIst ? getTotal(bestIst.pettorale) : 0;
+
+    const sortedCam = [...data.camminatori].filter(a => getVoteCount(a.pettorale) > 0).sort(compareAthletes);
+    const top4 = sortedCam.slice(0, 4);
+    const camScore = top4.reduce((s,a) => s + getTotal(a.pettorale), 0);
+
+    squadre.push({
+      asd,
+      istScore,
+      camScore,
+      total: istScore + camScore,
+      bestIstName: bestIst ? `${bestIst.cognome} ${bestIst.nome}` : '—',
+      top4Names: top4.map(a => `${a.cognome} ${a.nome}`).join(', ')
+    });
+  }
+
+  squadre.sort((a,b) => b.total - a.total);
+
+  if (squadre.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">🏟️</div><p>Nessuna squadra</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = squadre.map((s, i) => {
+    const pos = i+1;
+    const badge = pos<=3 ? `<span class="rank-badge rank-${pos}">${pos}</span>` : `<span class="rank-badge rank-n">${pos}</span>`;
+    return `<tr>
+      <td class="td-center">${badge}</td>
+      <td style="font-weight:600;">${s.asd}</td>
+      <td class="td-right td-mono">${s.istScore||'—'}</td>
+      <td class="td-right td-mono">${s.camScore||'—'}</td>
+      <td class="td-right td-mono" style="font-weight:700;font-size:15px;">${s.total||'—'}</td>
+    </tr>`;
+  }).join('');
 }
 
-function clearAll() {
-  if (!allRows.length) return;
-  if (!confirm(`Eliminare tutti i ${allRows.length} partecipanti dalla sessione?`)) return;
-  allRows = [];
-  schedeCount = 0;
-  renderTable();
-  toast('Sessione svuotata');
+// ══════════════════════════════════════════
+//  SEZIONE GESTIONE
+// ══════════════════════════════════════════
+function renderGestione() {
+  document.getElementById('edition-year').value = state.editionYear||'';
+  document.getElementById('edition-info').value = state.editionInfo||'';
 }
 
-// ============================================================
-// STATS
-// ============================================================
-function updateStats() {
-  const tot = allRows.length;
-  const prat = allRows.filter(r => r.praticante).length;
-  const istr = allRows.filter(r => r.istruttore).length;
-  const miglio = allRows.filter(r => r.miglio_rosso).length;
-
-  document.getElementById('statTotale').textContent = tot;
-  document.getElementById('statPraticanti').textContent = prat;
-  document.getElementById('statIstruttori').textContent = istr;
-  document.getElementById('statMiglio').textContent = miglio;
-  document.getElementById('statSchede').textContent = schedeCount;
-
-  const badge = document.getElementById('badgeCount');
-  if (tot > 0) { badge.style.display = 'inline-block'; badge.textContent = tot + ' part.'; }
-  else { badge.style.display = 'none'; }
+function saveEditionInfo() {
+  state.editionYear = document.getElementById('edition-year').value;
+  state.editionInfo = document.getElementById('edition-info').value;
+  saveState();
+  toast('Informazioni edizione salvate');
 }
 
-// ============================================================
-// EXPORT CSV
-// ============================================================
-function exportCSV() {
-  if (!allRows.length) return toast('Nessun dato da esportare', 'error');
-  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
-  const rows = [headers.join(';')];
-  allRows.forEach(r => {
-    rows.push([
-      r.n, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
-      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
-    ].map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(';'));
-  });
-  const blob = new Blob(['\uFEFF' + rows.join('\r\n')], {type:'text/csv;charset=utf-8;'});
-  downloadBlob(blob, 'NW_partecipanti_' + dateTag() + '.csv');
-  toast('CSV scaricato ✓', 'success');
-}
-
-// ============================================================
-// EXPORT EXCEL (XLSX via HTML table trick compatibile con Excel)
-// ============================================================
-function exportExcel() {
-  if (!allRows.length) return toast('Nessun dato da esportare', 'error');
-
-  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
-  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Partecipanti</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
-  html += '<table border="1" style="border-collapse:collapse;">';
-
-  // Header row
-  html += '<tr style="background:#B22222;color:white;font-weight:bold;">';
-  headers.forEach(h => html += `<td style="padding:6px 10px;">${h}</td>`);
-  html += '</tr>';
-
-  // Data rows
-  allRows.forEach((r, i) => {
-    const bg = i % 2 === 0 ? '#FFFFFF' : '#F9F9F9';
-    html += `<tr style="background:${bg};">`;
-    [r.n, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
-     r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
-    ].forEach(v => html += `<td style="padding:5px 10px;">${String(v||'')}</td>`);
-    html += '</tr>';
-  });
-  html += '</table></body></html>';
-
-  const blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8;'});
-  downloadBlob(blob, 'NW_partecipanti_' + dateTag() + '.xls');
-  toast('Excel scaricato ✓', 'success');
-}
-
-function downloadBlob(blob, filename) {
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  a.href = url;
+  a.download = `miglio_rosso_${state.editionYear||'export'}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Export completato');
 }
 
-function dateTag() {
-  const d = new Date();
-  return d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2);
+function triggerImport() {
+  document.getElementById('import-file').click();
 }
 
-// ============================================================
-// TOAST
-// ============================================================
-let toastTimer;
-function toast(msg, type='') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (type ? ' '+type : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = 'toast'; }, 2800);
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!confirm(`Importare dati edizione ${imported.editionYear||'?'}? I dati attuali verranno sovrascritti.`)) return;
+      state = { ...state, ...imported };
+      saveState();
+      renderAtleti();
+      toast(`Dati importati: ${state.athletes.length} atleti`);
+    } catch(err) {
+      toast('Errore nel file JSON', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
-// ============================================================
-// INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  checkApiKey();
+function resetAtleti() {
+  if (!confirm('Eliminare tutti gli atleti E i punteggi?')) return;
+  state.athletes = [];
+  state.scores = {};
+  state.judgeStatus = {};
+  saveState();
+  renderAtleti();
+  toast('Atleti eliminati');
+}
+
+function resetScores() {
+  if (!confirm('Eliminare tutti i punteggi?')) return;
+  state.scores = {};
+  state.judgeStatus = {};
+  saveState();
+  renderJudges();
+  toast('Punteggi eliminati');
+}
+
+function triggerImportScoresXLSX() {
+  document.getElementById('import-scores-xlsx').click();
+}
+
+function importScoresXLSX(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (rows.length < 2) return toast('File vuoto', 'error');
+
+      let imported = 0, skipped = 0;
+      const dataRows = rows.slice(1).filter(r => r[0] !== '');
+
+      for (const row of dataRows) {
+        const pet = String(row[0]).trim();
+        const pNum = parseInt(pet);
+        if (isNaN(pNum)) { skipped++; continue; }
+
+        if (!state.scores[String(pNum)]) state.scores[String(pNum)] = {};
+
+        for (let j = 1; j <= 10; j++) {
+          const val = row[j];
+          if (val !== '' && val !== null && val !== undefined && !isNaN(Number(val))) {
+            state.scores[String(pNum)][j] = Number(val);
+          }
+        }
+        imported++;
+      }
+
+      saveState();
+      renderAtleti();
+      toast(`✅ Punteggi importati: ${imported} atleti${skipped ? ', ' + skipped + ' saltati' : ''}`);
+    } catch(err) {
+      toast('Errore: ' + err.message, 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function exportScoresXLSX() {
+  const wb = XLSX.utils.book_new();
+  const header = ['Pettorale','Cognome','Nome','ASD','Cat.','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','Totale'];
+  const rows = [header];
+
+  const sorted = [...state.athletes].sort((a,b) => {
+    if (a.cat !== b.cat) return a.cat === 'I' ? 1 : -1;
+    return a.pettorale - b.pettorale;
+  });
+
+  for (const a of sorted) {
+    const sc = getAthleteScores(a.pettorale);
+    const judgeScores = Array.from({length:10}, (_,i) => sc[i+1] !== undefined ? sc[i+1] : '');
+    const total = getTotal(a.pettorale);
+    rows.push([a.pettorale, a.cognome, a.nome, a.asd, a.cat,
+      ...judgeScores, total || '']);
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [7,18,14,26,5,5,5,5,5,5,5,5,5,5,5,8].map(w => ({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws, 'Punteggi');
+  XLSX.writeFile(wb, `punteggi_miglio_rosso_${state.editionYear||'export'}.xlsx`);
+  toast('Export punteggi completato');
+}
+
+function triggerImportXLSX() {
+  document.getElementById('import-xlsx-file').click();
+}
+
+function importXLSX(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+      if (rows.length < 2) return toast('File vuoto o senza dati', 'error');
+
+      // Skip header row
+      const dataRows = rows.slice(1).filter(r => r.some(c => c !== ''));
+
+      let imported = 0, skipped = 0, autoId = getMaxPettorale() + 1;
+      const newAthletes = [];
+
+      for (const row of dataRows) {
+        let [pet, cognome, nome, asd, cat] = row.map(c => String(c || '').trim());
+
+        // Categoria mapping
+        cat = cat.toUpperCase();
+        if (cat === 'CAMMINATORE' || cat === 'C') cat = 'C';
+        else if (cat === 'ISTRUTTORE' || cat === 'I') cat = 'I';
+        else { skipped++; continue; }
+
+        if (!cognome || !nome) { skipped++; continue; }
+
+        // Pettorale: usa quello del file o auto-assegna
+        let pettoraleNum = parseInt(pet);
+        if (isNaN(pettoraleNum) || pettoraleNum <= 0) {
+          pettoraleNum = autoId++;
+        }
+
+        // Skip duplicate pettorali
+        if (state.athletes.find(a => a.pettorale === pettoraleNum)) {
+          skipped++; continue;
+        }
+
+        newAthletes.push({
+          pettorale: pettoraleNum,
+          cognome: cognome.toUpperCase(),
+          nome: nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase(),
+          asd: asd.toUpperCase(),
+          cat
+        });
+        imported++;
+      }
+
+      if (imported === 0) return toast('Nessun atleta valido trovato', 'error');
+
+      if (!confirm(`Importare ${imported} atleti?${skipped > 0 ? ' (' + skipped + ' righe saltate)' : ''}`)) return;
+
+      state.athletes = [...state.athletes, ...newAthletes];
+      saveState();
+      renderAtleti();
+      showSection('atleti');
+      toast(`✅ ${imported} atleti importati${skipped > 0 ? ', ' + skipped + ' saltati' : ''}`);
+    } catch(err) {
+      console.error(err);
+      toast('Errore lettura file: ' + err.message, 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function getMaxPettorale() {
+  if (state.athletes.length === 0) return 0;
+  return Math.max(...state.athletes.map(a => a.pettorale));
+}
+
+function resetAll() {
+  if (!confirm('⚠️ RESET COMPLETO: eliminare atleti, punteggi e configurazione giudici?')) return;
+  state.athletes = [];
+  state.scores = {};
+  state.judgeStatus = {};
+  state.judges = Array.from({length:10}, (_,i) => ({id:i+1, name:'', criterion:''}));
+  saveState();
+  renderAtleti();
+  renderJudges();
+  toast('Reset completato');
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS MODAL
+// ══════════════════════════════════════════
+function openSettings() {
+  document.getElementById('inp-apikey').value = state.apiKey||'';
+
+  const list = document.getElementById('judges-config-list');
+  list.innerHTML = `
+    <div class="judge-config-row" style="font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:1px;">
+      <div></div><div>NOME GIUDICE</div><div>CRITERIO DI VALUTAZIONE</div>
+    </div>` +
+    state.judges.map(j => `
+    <div class="judge-config-row">
+      <div class="judge-config-num">G${j.id}</div>
+      <input type="text" id="cfg-name-${j.id}" value="${j.name||''}" placeholder="Nome cognome">
+      <input type="text" id="cfg-crit-${j.id}" value="${j.criterion||''}" placeholder="es. Passo e rullata">
+    </div>`).join('');
+
+  document.getElementById('modal-settings').classList.add('open');
+}
+
+function saveSettings() {
+  state.apiKey = document.getElementById('inp-apikey').value.trim();
+  for (let j=1; j<=10; j++) {
+    state.judges[j-1].name = document.getElementById(`cfg-name-${j}`)?.value?.trim()||'';
+    state.judges[j-1].criterion = document.getElementById(`cfg-crit-${j}`)?.value?.trim()||'';
+  }
+  saveState();
+  closeModal('modal-settings');
+  renderJudges();
+  toast('Impostazioni salvate');
+}
+
+// ══════════════════════════════════════════
+//  MODAL UTILS
+// ══════════════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Click outside to close
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
 });
 
-// Close modal on backdrop click
-document.getElementById('keyModal').addEventListener('click', function(e) {
-  if (e.target === this) closeKeyModal();
+// ESC to close
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
 });
+
+// Enter on athlete form
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('modal-atleta').classList.contains('open')) {
+    saveAtleta();
+  }
+});
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+loadState();
+renderAtleti();
 </script>
 </body>
 </html>
