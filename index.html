@@ -975,57 +975,7 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  showAutosaveIndicator();
-  scheduleAutoBackup();
 }
-
-function showAutosaveIndicator() {
-  const el = document.getElementById('autosave-indicator');
-  const txt = document.getElementById('autosave-text');
-  if (!el || !txt) return;
-  const now = new Date();
-  const time = now.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
-  txt.textContent = `✓ Salvato ${time}`;
-  el.style.display = 'block';
-  el.style.opacity = '1';
-  // Fade out after 4 seconds
-  clearTimeout(window._saveIndicatorTimer);
-  window._saveIndicatorTimer = setTimeout(() => {
-    el.style.transition = 'opacity 1s';
-    el.style.opacity = '0.4';
-  }, 4000);
-}
-
-// Auto-backup every 10 minutes if there are athletes
-let _autoBackupTimer = null;
-function scheduleAutoBackup() {
-  if (_autoBackupTimer) return; // already scheduled
-  _autoBackupTimer = setInterval(() => {
-    if (state.athletes.length === 0) return;
-    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const now = new Date();
-    const ts = now.toISOString().slice(0,16).replace('T','_').replace(':','h');
-    a.download = `backup_miglio_rosso_${ts}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    const txt = document.getElementById('autosave-text');
-    if (txt) txt.textContent = `💾 Backup ${now.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}`;
-    const el = document.getElementById('autosave-indicator');
-    if (el) { el.style.opacity = '1'; el.style.display = 'block'; }
-  }, 10 * 60 * 1000); // ogni 10 minuti
-}
-
-// Warn before closing if data exists
-window.addEventListener('beforeunload', (e) => {
-  if (state.athletes.length > 0) {
-    e.preventDefault();
-    e.returnValue = 'Hai dati non esportati. Vuoi davvero uscire?';
-    return e.returnValue;
-  }
-});
 
 // ══════════════════════════════════════════
 //  NAVIGATION
