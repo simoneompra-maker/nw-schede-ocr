@@ -658,11 +658,19 @@ Se una cella è illeggibile scrivi "?". Se una casella check è vuota, usa false
     const cleaned = rawText.replace(/```json|```/g, '').trim();
 
     let parsed;
-    try { parsed = JSON.parse(cleaned); }
-    catch { throw new Error('Il modello non ha restituito un JSON valido. Riprova.'); }
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      const match = cleaned.match(/\[[\s\S]*\]/);
+      if (match) { try { parsed = JSON.parse(match[0]); } catch { /* continua */ } }
+      if (!parsed) {
+        const preview = rawText.substring(0, 400);
+        throw new Error('Risposta Gemini: ' + preview);
+      }
+    }
 
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('Nessun partecipante trovato. Controlla che la foto sia nitida e ben inquadrata.');
+      throw new Error('Nessun partecipante trovato. Controlla che il file sia leggibile e la scheda sia compilata.');
     }
 
     // Aggiungi società e offset numero
