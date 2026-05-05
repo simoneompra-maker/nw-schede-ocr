@@ -620,13 +620,11 @@ async function analyzeImage() {
   statusText.textContent = 'Lettura in corso…';
   currentSocieta = document.getElementById('societaInput').value.trim();
 
-  const prompt = `Leggi questa scheda di iscrizione per un evento Nordic Walking.
-Estrai SOLO le righe della tabella che hanno cognome e nome compilati (salta le righe vuote).
-Colonne da estrarre: N (numero riga), Cognome, Nome, Nato il (data nascita), Città di residenza, Taglia (S/M/L/XL ecc.), Praticante (X = true), Istruttore (X = true), "Partecipa al Miglio Rosso" (colonna a destra con sfondo rosso, X = true).
-IMPORTANTE: se la cella Città contiene un apice/virgolette/simbolo di ripetizione ("), copia la città della riga precedente.
-Rispondi SOLO con un JSON array valido. Zero testo aggiuntivo. Zero backtick. Zero markdown.
-Formato: [{"n":1,"cognome":"...","nome":"...","nato_il":"gg.mm.aa","citta":"...","taglia":"...","praticante":true,"istruttore":false,"miglio_rosso":true}]
-Se una cella è illeggibile scrivi "?". Se una casella check è vuota, usa false.`;
+  const prompt = `Sei un lettore OCR. Leggi la tabella in questa scheda Nordic Walking ed estrai i partecipanti con dati compilati.
+Rispondi SOLO con JSON array minificato (niente spazi extra, niente testo fuori dal JSON, niente backtick).
+Campi per ogni riga: n(int), cognome(str), nome(str), nato_il(str gg.mm.aa), citta(str), taglia(str), praticante(bool), istruttore(bool), miglio_rosso(bool).
+Regole: salta righe vuote; se città è apice/virgoletta ripeti città precedente; X nelle colonne Praticante/Istruttore/MiglioRosso = true; illeggibile = "?".
+Output esempio: [{"n":1,"cognome":"ROSSI","nome":"MARIO","nato_il":"01.01.80","citta":"TREVISO","taglia":"M","praticante":false,"istruttore":true,"miglio_rosso":true}]`;
 
   try {
     statusText.textContent = 'Comunicazione con Gemini…';
@@ -642,7 +640,7 @@ Se una cella è illeggibile scrivi "?". Se una casella check è vuota, usa false
               { text: prompt }
             ]
           }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
+          generationConfig: { temperature: 0.1, maxOutputTokens: 16384 }
         })
       }
     );
