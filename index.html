@@ -512,11 +512,30 @@
 // ============================================================
 // STATE
 // ============================================================
-let allRows = [];       // tutti i partecipanti della sessione
+const SESSION_KEY = 'nw_ocr_session_v1';
+
+let allRows = [];
 let imgBase64 = '';
 let imgMimeType = 'image/jpeg';
 let currentSocieta = '';
 let schedeCount = 0;
+
+function saveSession() {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ allRows, schedeCount }));
+  } catch(e) { console.warn('saveSession error', e); }
+}
+
+function loadSession() {
+  try {
+    const s = localStorage.getItem(SESSION_KEY);
+    if (s) {
+      const parsed = JSON.parse(s);
+      allRows = parsed.allRows || [];
+      schedeCount = parsed.schedeCount || 0;
+    }
+  } catch(e) { console.warn('loadSession error', e); }
+}
 
 // ============================================================
 // API KEY
@@ -681,6 +700,7 @@ Output esempio: [{"n":1,"cognome":"ROSSI","nome":"MARIO","nato_il":"01.01.80","c
 
     allRows = allRows.concat(parsed);
     schedeCount++;
+    saveSession();
 
     statusBox.style.display = 'none';
     btn.disabled = false;
@@ -721,15 +741,15 @@ function renderTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="num">${i+1}</td>
-      <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${i}].cognome=this.value"></td>
-      <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${i}].nome=this.value"></td>
-      <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${i}].nato_il=this.value" style="min-width:68px;"></td>
-      <td><input type="text" value="${esc(r.citta)}" onchange="allRows[${i}].citta=this.value"></td>
-      <td class="check"><input type="text" value="${esc(r.taglia)}" class="taglia-input" onchange="allRows[${i}].taglia=this.value" style="max-width:44px;text-align:center;"></td>
-      <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${i}].praticante=this.checked;updateStats()"></td>
-      <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${i}].istruttore=this.checked;updateStats()"></td>
-      <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${i}].miglio_rosso=this.checked;updateStats()"></td>
-      <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${i}].societa=this.value" placeholder="—"></td>
+      <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${i}].cognome=this.value;saveSession()"></td>
+      <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${i}].nome=this.value;saveSession()"></td>
+      <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${i}].nato_il=this.value;saveSession()" style="min-width:68px;"></td>
+      <td><input type="text" value="${esc(r.citta)}" onchange="allRows[${i}].citta=this.value;saveSession()"></td>
+      <td class="check"><input type="text" value="${esc(r.taglia)}" class="taglia-input" onchange="allRows[${i}].taglia=this.value;saveSession()" style="max-width:44px;text-align:center;"></td>
+      <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${i}].praticante=this.checked;saveSession();updateStats()"></td>
+      <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${i}].istruttore=this.checked;saveSession();updateStats()"></td>
+      <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${i}].miglio_rosso=this.checked;saveSession();updateStats()"></td>
+      <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${i}].societa=this.value;saveSession()" placeholder="—"></td>
       <td class="action-col"><button class="btn-del" onclick="deleteRow(${i})" title="Elimina">✕</button></td>
     `;
     tbody.appendChild(tr);
@@ -745,6 +765,7 @@ function esc(s) {
 function deleteRow(i) {
   allRows.splice(i, 1);
   allRows.forEach((r, j) => r.n = j+1);
+  saveSession();
   renderTable();
   toast('Riga eliminata');
 }
@@ -755,6 +776,7 @@ function addRow() {
     taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'',
     _id: Date.now()
   });
+  saveSession();
   renderTable();
   const inputs = document.getElementById('tableBody').querySelectorAll('input[type="text"]');
   if (inputs.length > 0) inputs[inputs.length - 5].focus();
@@ -765,6 +787,7 @@ function clearAll() {
   if (!confirm(`Eliminare tutti i ${allRows.length} partecipanti dalla sessione?`)) return;
   allRows = [];
   schedeCount = 0;
+  saveSession();
   renderTable();
   toast('Sessione svuotata');
 }
@@ -869,6 +892,7 @@ function toast(msg, type='') {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  loadSession();
   checkApiKey();
 });
 
