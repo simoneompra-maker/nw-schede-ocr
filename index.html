@@ -387,6 +387,48 @@
   }
   .btn-clear:hover { background: var(--red-light); }
 
+  /* MULTI-SELECT DROPDOWN */
+  .ms { position: relative; }
+  .ms-btn {
+    border: 1.5px solid var(--gray-200); background: white; color: var(--gray-800);
+    border-radius: var(--radius-sm); padding: 6px 10px; font-size: 13px; cursor: pointer;
+    font-family: inherit; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+    transition: border-color .15s;
+  }
+  .ms-btn:hover { border-color: var(--red); }
+  .ms-btn.active { border-color: var(--red); color: var(--red); font-weight: 600; }
+  .ms-btn .caret { font-size: 10px; color: var(--gray-400); }
+  .ms-panel {
+    display: none; position: absolute; z-index: 50; top: calc(100% + 4px); left: 0;
+    background: white; border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow); min-width: 210px; max-width: 290px;
+  }
+  .ms-panel.open { display: block; }
+  .ms-tools { padding: 8px; border-bottom: 1px solid var(--gray-100); }
+  .ms-tools button {
+    width: 100%; border: 1px solid var(--gray-200); background: var(--gray-50); color: var(--gray-600);
+    border-radius: 4px; padding: 5px 8px; font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .ms-tools button:hover { border-color: var(--red); color: var(--red); }
+  .ms-options { max-height: 240px; overflow-y: auto; padding: 4px; }
+  .ms-opt { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  .ms-opt:hover { background: var(--gray-50); }
+  .ms-opt input { width: 15px; height: 15px; accent-color: var(--red); cursor: pointer; flex-shrink: 0; }
+  .ms-empty { padding: 10px; font-size: 12px; color: var(--gray-400); text-align: center; }
+
+  /* BULK ACTION BAR */
+  .bulk-bar {
+    display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 9px 1.25rem; background: var(--red-light); border-bottom: 1px solid var(--gray-200);
+  }
+  .bulk-bar.show { display: flex; }
+  .bulk-count { font-size: 13px; font-weight: 600; color: var(--red-dark); margin-right: auto; }
+  .bulk-bar .btn { padding: 5px 12px; font-size: 12px; }
+
+  /* SELECT COLUMN */
+  td.sel, th.sel { width: 30px; text-align: center; }
+  td.sel input, th.sel input { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
+
   /* PRINT AREA */
   #printArea { display: none; }
   @media print {
@@ -524,20 +566,41 @@
     </div>
     <div class="filter-bar" id="filterBar">
       <input type="text" id="fSearch" placeholder="🔍 Cerca cognome, nome, città…" oninput="filters.q=this.value;applyFilters()">
-      <select id="fSocieta" onchange="filters.societa=this.value;applyFilters()"><option value="">Tutte le società</option></select>
-      <select id="fTaglia" onchange="filters.taglia=this.value;applyFilters()"><option value="">Tutte le taglie</option></select>
+      <div class="ms" id="msSocieta">
+        <button type="button" class="ms-btn" id="msSocietaBtn" onclick="toggleMsPanel('societa', event)"><span id="msSocietaLabel">Tutte le società</span> <span class="caret">▾</span></button>
+        <div class="ms-panel" id="msSocietaPanel">
+          <div class="ms-tools"><button type="button" onclick="msNone('societa')">Pulisci selezione</button></div>
+          <div class="ms-options" id="msSocietaOptions"></div>
+        </div>
+      </div>
+      <div class="ms" id="msTaglia">
+        <button type="button" class="ms-btn" id="msTagliaBtn" onclick="toggleMsPanel('taglia', event)"><span id="msTagliaLabel">Tutte le taglie</span> <span class="caret">▾</span></button>
+        <div class="ms-panel" id="msTagliaPanel">
+          <div class="ms-tools"><button type="button" onclick="msNone('taglia')">Pulisci selezione</button></div>
+          <div class="ms-options" id="msTagliaOptions"></div>
+        </div>
+      </div>
       <div class="ftags">
         <button type="button" class="ftag" data-tag="praticante" onclick="toggleTag('praticante',this)">Praticante</button>
         <button type="button" class="ftag" data-tag="istruttore" onclick="toggleTag('istruttore',this)">Istruttore</button>
         <button type="button" class="ftag" data-tag="miglio_rosso" onclick="toggleTag('miglio_rosso',this)">Miglio Rosso</button>
       </div>
       <span class="filter-count" id="filterCount">0 di 0</span>
-      <button class="btn-clear" id="btnClear" onclick="clearFilters()" style="display:none;">✕ Azzera</button>
+      <button class="btn-clear" id="btnClear" onclick="clearFilters()" style="display:none;">✕ Azzera filtri</button>
+    </div>
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-count" id="bulkCount">0 selezionati</span>
+      <button class="btn btn-outline" onclick="bulkPrint()">🖨 Stampa selezionati</button>
+      <button class="btn btn-outline" onclick="bulkExportCSV()">⬇ CSV</button>
+      <button class="btn btn-outline" onclick="bulkExportExcel()">⬇ Excel</button>
+      <button class="btn btn-danger" onclick="bulkDelete()">🗑 Elimina</button>
+      <button class="btn btn-ghost" onclick="clearSelection()">Deseleziona tutto</button>
     </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th class="sel"><input type="checkbox" id="selAll" onclick="toggleSelectAll(this.checked)" title="Seleziona tutti i visibili"></th>
             <th style="width:32px;">#</th>
             <th style="width:54px; text-align:center;">Pett.</th>
             <th style="width:110px;">Cognome</th>
@@ -564,7 +627,7 @@
 
 </main>
 
-<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.2</footer>
+<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.3</footer>
 
 <!-- API KEY MODAL -->
 <div class="modal-backdrop" id="keyModal">
@@ -616,7 +679,10 @@ let imgMimeType = 'image/jpeg';
 let currentSocieta = '';
 let schedeCount = 0;
 
-let filters = { q:'', societa:'', taglia:'', tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
+let filters = { q:'', societa:[], taglia:[], tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
+let selectedIds = new Set();
+let uidCounter = 1;
+function newId() { return 'r' + (uidCounter++); }
 let pendingImport = null;
 let pendingBibs = null;
 
@@ -633,6 +699,7 @@ function loadSession() {
       const parsed = JSON.parse(s);
       allRows = parsed.allRows || [];
       schedeCount = parsed.schedeCount || 0;
+      allRows.forEach(r => { r._id = newId(); });
     }
   } catch(e) { console.warn('loadSession error', e); }
 }
@@ -795,7 +862,7 @@ Output esempio: [{"n":1,"cognome":"ROSSI","nome":"MARIO","nato_il":"01.01.80","c
     parsed.forEach((r, i) => {
       r.societa = currentSocieta || '';
       r.pettorale = r.pettorale || '';
-      r._id = Date.now() + i;
+      r._id = newId();
       r.n = offset + i + 1;
     });
 
@@ -838,9 +905,11 @@ function renderTable() {
     emptyP.innerHTML = 'Nessun partecipante ancora.<br>Carica una scheda per iniziare.';
     updateStats();
     updateFilterCount(0);
+    updateBulkBar();
     return;
   }
 
+  pruneSelection();
   const idxs = getFilteredIndices();
 
   if (idxs.length === 0) {
@@ -855,6 +924,7 @@ function renderTable() {
     const r = allRows[ri];
     const tr = document.createElement('tr');
     tr.innerHTML = `
+      <td class="sel"><input type="checkbox" ${selectedIds.has(r._id)?'checked':''} onchange="toggleSelect('${r._id}', this.checked)"></td>
       <td class="num">${pos+1}</td>
       <td class="check"><input type="text" value="${esc(r.pettorale)}" onchange="allRows[${ri}].pettorale=this.value;saveSession()" style="max-width:46px;text-align:center;font-weight:600;"></td>
       <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${ri}].cognome=this.value;saveSession()"></td>
@@ -873,6 +943,8 @@ function renderTable() {
 
   updateStats();
   updateFilterCount(idxs.length);
+  refreshSelAll(idxs);
+  updateBulkBar();
 }
 
 // ============================================================
@@ -886,8 +958,8 @@ function getFilteredIndices() {
       const hay = ((r.cognome||'')+' '+(r.nome||'')+' '+(r.citta||'')).toLowerCase();
       if (!hay.includes(q)) return;
     }
-    if (filters.societa && (r.societa||'').trim() !== filters.societa) return;
-    if (filters.taglia && (r.taglia||'').toString().trim().toUpperCase() !== filters.taglia) return;
+    if (filters.societa.length && !filters.societa.includes((r.societa||'').trim())) return;
+    if (filters.taglia.length && !filters.taglia.includes((r.taglia||'').toString().trim().toUpperCase())) return;
     if (filters.tags.praticante && !r.praticante) return;
     if (filters.tags.istruttore && !r.istruttore) return;
     if (filters.tags.miglio_rosso && !r.miglio_rosso) return;
@@ -905,36 +977,81 @@ function toggleTag(tag, el) {
 }
 
 function clearFilters() {
-  filters = { q:'', societa:'', taglia:'', tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
+  filters = { q:'', societa:[], taglia:[], tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
   const s = document.getElementById('fSearch'); if (s) s.value = '';
   document.querySelectorAll('.ftag').forEach(b => b.classList.remove('active'));
+  closeAllMsPanels();
   renderTable();
 }
 
 function refreshFilterOptions() {
-  const socSel = document.getElementById('fSocieta');
-  if (!socSel) return;
+  const socWrap = document.getElementById('msSocietaOptions');
+  if (!socWrap) return;
   const socs = [...new Set(allRows.map(r => (r.societa||'').trim()).filter(Boolean))]
     .sort((a,b) => a.localeCompare(b,'it'));
-  if (filters.societa && !socs.includes(filters.societa)) filters.societa = '';
-  socSel.innerHTML = '<option value="">Tutte le società</option>' +
-    socs.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
-  socSel.value = filters.societa;
+  filters.societa = filters.societa.filter(v => socs.includes(v));
+  socWrap.innerHTML = socs.length ? socs.map(s => msOptHTML('societa', s)).join('') : '<div class="ms-empty">Nessuna società presente</div>';
 
-  const tagSel = document.getElementById('fTaglia');
   const std = ['XS','S','M','L','XL','XXL'];
   const present = [...new Set(allRows.map(r => (r.taglia||'').toString().trim().toUpperCase()).filter(Boolean))];
   const tg = [...std, ...present.filter(t => !std.includes(t))];
-  if (filters.taglia && !tg.includes(filters.taglia)) filters.taglia = '';
-  tagSel.innerHTML = '<option value="">Tutte le taglie</option>' +
-    tg.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
-  tagSel.value = filters.taglia;
+  filters.taglia = filters.taglia.filter(v => tg.includes(v));
+  document.getElementById('msTagliaOptions').innerHTML = tg.map(t => msOptHTML('taglia', t)).join('');
+
+  updateMsLabel('societa');
+  updateMsLabel('taglia');
+}
+
+function msOptHTML(which, val) {
+  const checked = filters[which].includes(val) ? 'checked' : '';
+  return `<label class="ms-opt"><input type="checkbox" ${checked} value="${esc(val)}" onchange="msToggle('${which}', this.value, this.checked)">${esc(val)}</label>`;
+}
+
+function msToggle(which, val, checked) {
+  const arr = filters[which];
+  const i = arr.indexOf(val);
+  if (checked && i < 0) arr.push(val);
+  if (!checked && i >= 0) arr.splice(i, 1);
+  updateMsLabel(which);
+  renderTable();
+}
+
+function msNone(which) {
+  filters[which] = [];
+  renderTable();
+}
+
+function updateMsLabel(which) {
+  const isSoc = which === 'societa';
+  const lbl = document.getElementById(isSoc ? 'msSocietaLabel' : 'msTagliaLabel');
+  const btn = document.getElementById(isSoc ? 'msSocietaBtn' : 'msTagliaBtn');
+  if (!lbl) return;
+  const n = filters[which].length;
+  if (n === 0) {
+    lbl.textContent = isSoc ? 'Tutte le società' : 'Tutte le taglie';
+    btn.classList.remove('active');
+  } else {
+    lbl.textContent = isSoc ? (n + ' società') : (n + (n===1 ? ' taglia' : ' taglie'));
+    btn.classList.add('active');
+  }
+}
+
+function toggleMsPanel(which, ev) {
+  if (ev) ev.stopPropagation();
+  const panel = document.getElementById(which === 'societa' ? 'msSocietaPanel' : 'msTagliaPanel');
+  const wasOpen = panel.classList.contains('open');
+  closeAllMsPanels();
+  if (!wasOpen) panel.classList.add('open');
+}
+
+function closeAllMsPanels() {
+  document.querySelectorAll('.ms-panel').forEach(p => p.classList.remove('open'));
 }
 
 function updateFilterCount(n) {
   const el = document.getElementById('filterCount');
   if (el) el.textContent = `${n} di ${allRows.length}`;
-  const anyF = filters.q || filters.societa || filters.taglia ||
+  const anyF = filters.q || filters.societa.length || filters.taglia.length ||
     filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso;
   const clr = document.getElementById('btnClear');
   if (clr) clr.style.display = anyF ? 'inline-flex' : 'none';
@@ -943,8 +1060,8 @@ function updateFilterCount(n) {
 function describeFilters() {
   const parts = [];
   if (filters.q) parts.push('ricerca "' + filters.q + '"');
-  if (filters.societa) parts.push('Società: ' + filters.societa);
-  if (filters.taglia) parts.push('taglia ' + filters.taglia);
+  if (filters.societa.length) parts.push('Società: ' + filters.societa.join(', '));
+  if (filters.taglia.length) parts.push('taglie: ' + filters.taglia.join(', '));
   const tags = [];
   if (filters.tags.praticante) tags.push('Praticante');
   if (filters.tags.istruttore) tags.push('Istruttore');
@@ -953,11 +1070,94 @@ function describeFilters() {
   return parts.join(' · ');
 }
 
+// ============================================================
+// SELEZIONE RIGHE + AZIONI IN BLOCCO
+// ============================================================
+function pruneSelection() {
+  const ids = new Set(allRows.map(r => r._id));
+  [...selectedIds].forEach(id => { if (!ids.has(id)) selectedIds.delete(id); });
+}
+
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar();
+  refreshSelAll(getFilteredIndices());
+}
+
+function toggleSelectAll(checked) {
+  getFilteredIndices().forEach(i => {
+    const id = allRows[i]._id;
+    if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  });
+  renderTable();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  renderTable();
+}
+
+function refreshSelAll(idxs) {
+  const cb = document.getElementById('selAll');
+  if (!cb) return;
+  const visible = idxs.map(i => allRows[i]._id);
+  const sel = visible.filter(id => selectedIds.has(id)).length;
+  cb.checked = visible.length > 0 && sel === visible.length;
+  cb.indeterminate = sel > 0 && sel < visible.length;
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  if (!bar) return;
+  const n = selectedIds.size;
+  if (n > 0) {
+    bar.classList.add('show');
+    document.getElementById('bulkCount').textContent = n + ' selezionat' + (n===1 ? 'o' : 'i');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function getSelectedRows() {
+  return allRows.filter(r => selectedIds.has(r._id));
+}
+
+function bulkDelete() {
+  const rows = getSelectedRows();
+  if (!rows.length) return;
+  if (!confirm('Eliminare ' + rows.length + ' partecipant' + (rows.length===1?'e':'i') + ' selezionat' + (rows.length===1?'o':'i') + '?')) return;
+  allRows = allRows.filter(r => !selectedIds.has(r._id));
+  allRows.forEach((r, j) => r.n = j+1);
+  selectedIds.clear();
+  saveSession();
+  renderTable();
+  toast('Eliminati ✓');
+}
+
+function bulkPrint() {
+  const rows = getSelectedRows();
+  if (!rows.length) return;
+  doPrint(rows, rows.length + ' partecipanti selezionati');
+}
+
+function bulkExportCSV() {
+  const rows = getSelectedRows();
+  if (!rows.length) return;
+  doExportCSV(rows);
+}
+
+function bulkExportExcel() {
+  const rows = getSelectedRows();
+  if (!rows.length) return;
+  doExportExcel(rows);
+}
+
 function esc(s) {
   return (s || '').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
 
 function deleteRow(i) {
+  selectedIds.delete(allRows[i]._id);
   allRows.splice(i, 1);
   allRows.forEach((r, j) => r.n = j+1);
   saveSession();
@@ -971,7 +1171,7 @@ function addRow() {
   allRows.push({
     n: allRows.length+1, cognome:'', nome:'', nato_il:'', citta:'',
     taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'', pettorale:'',
-    _id: Date.now()
+    _id: newId()
   });
   saveSession();
   if (anyF) clearFilters(); else renderTable();
@@ -1015,6 +1215,10 @@ function updateStats() {
 function exportCSV() {
   const rowsF = getFilteredIndices().map(i => allRows[i]);
   if (!rowsF.length) return toast('Nessuna riga da esportare (controlla i filtri)', 'error');
+  doExportCSV(rowsF);
+}
+function doExportCSV(rowsF) {
+  if (!rowsF.length) return toast('Nessuna riga da esportare', 'error');
   const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
   const rows = [headers.join(';')];
   rowsF.forEach((r, i) => {
@@ -1034,6 +1238,10 @@ function exportCSV() {
 function exportExcel() {
   const rowsF = getFilteredIndices().map(i => allRows[i]);
   if (!rowsF.length) return toast('Nessuna riga da esportare (controlla i filtri)', 'error');
+  doExportExcel(rowsF);
+}
+function doExportExcel(rowsF) {
+  if (!rowsF.length) return toast('Nessuna riga da esportare', 'error');
 
   const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
   let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
@@ -1066,16 +1274,19 @@ function printTable() {
   if (!allRows.length) return toast('Niente da stampare', 'error');
   const idxs = getFilteredIndices();
   if (!idxs.length) return toast('Nessuna riga da stampare con i filtri attivi', 'error');
-
-  const rows = idxs.map(i => allRows[i]);
-  const ck = b => b ? '✓' : '';
   const af = describeFilters();
+  doPrint(idxs.map(i => allRows[i]), af ? 'Filtri attivi: ' + af : '');
+}
+
+function doPrint(rows, scopeText) {
+  if (!rows.length) return toast('Niente da stampare', 'error');
+  const ck = b => b ? '✓' : '';
   const oggi = new Date().toLocaleDateString('it-IT');
 
   let h = `<div class="print-head">
       <h1>NW Schede OCR — Silewalking</h1>
       <div class="print-meta">Stampato il ${oggi} · ${rows.length} partecipant${rows.length===1?'e':'i'}</div>
-      ${af ? `<div class="print-meta">Filtri attivi: ${esc(af)}</div>` : ''}
+      ${scopeText ? `<div class="print-meta">${esc(scopeText)}</div>` : ''}
     </div>
     <table><colgroup>
       <col style="width:4%"><col style="width:7%"><col style="width:13%"><col style="width:11%">
@@ -1290,7 +1501,7 @@ function confirmImport(mode) {
   if (!toAdd.length) { closeImportModal(); return toast('Niente da aggiungere', 'error'); }
 
   const offset = allRows.length;
-  toAdd.forEach((r, i) => { delete r._dup; r._id = Date.now() + i; r.n = offset + i + 1; });
+  toAdd.forEach((r, i) => { delete r._dup; r._id = newId(); r.n = offset + i + 1; });
   allRows = allRows.concat(toAdd);
   saveSession();
   closeImportModal();
@@ -1413,6 +1624,9 @@ document.getElementById('keyModal').addEventListener('click', function(e) {
 });
 document.getElementById('importModal').addEventListener('click', function(e) {
   if (e.target === this) closeImportModal();
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ms')) closeAllMsPanels();
 });
 document.getElementById('bibModal').addEventListener('click', function(e) {
   if (e.target === this) closeBibModal();
