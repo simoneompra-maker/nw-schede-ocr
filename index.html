@@ -357,6 +357,55 @@
     text-align: center; padding: 1rem;
     font-size: 11px; color: var(--gray-400);
   }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 1.25rem;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .filter-bar input[type="text"], .filter-bar select {
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+    padding: 6px 10px; font-size: 13px; font-family: inherit; background: white;
+    transition: border-color .15s;
+  }
+  .filter-bar input[type="text"] { flex: 1; min-width: 170px; }
+  .filter-bar input[type="text"]:focus, .filter-bar select:focus { outline: none; border-color: var(--red); }
+  .ftags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ftag {
+    border: 1.5px solid var(--gray-200); background: white; color: var(--gray-600);
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+    font-family: inherit; transition: all .15s; white-space: nowrap;
+  }
+  .ftag:hover { border-color: var(--red); }
+  .ftag.active { background: var(--red); color: white; border-color: var(--red); }
+  .filter-count { font-size: 12px; color: var(--gray-600); margin-left: auto; white-space: nowrap; }
+  .btn-clear {
+    border: none; background: none; color: var(--red); font-size: 12px; cursor: pointer;
+    padding: 5px 8px; border-radius: var(--radius-sm); font-family: inherit;
+  }
+  .btn-clear:hover { background: var(--red-light); }
+
+  /* PRINT AREA */
+  #printArea { display: none; }
+  @media print {
+    @page { size: A4 portrait; margin: 14mm; }
+    header, main, footer, .toast, .modal-backdrop { display: none !important; }
+    #printArea { display: block !important; color: #000; }
+    #printArea .print-head { margin-bottom: 10px; }
+    #printArea h1 { font-size: 16px; margin: 0 0 2px; }
+    #printArea .print-meta { font-size: 11px; color: #333; }
+    #printArea table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+    #printArea thead { display: table-header-group; }
+    #printArea th, #printArea td { border: 1px solid #888; padding: 3px 5px; text-align: left; }
+    #printArea th {
+      background: #eee !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      font-size: 9.5px; text-transform: uppercase; letter-spacing: .3px;
+    }
+    #printArea tr { page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -413,6 +462,8 @@
       </div>
     </div>
     <div class="session-actions">
+      <button class="btn btn-outline" onclick="triggerImport()">📥 Importa Excel</button>
+      <input type="file" id="importInput" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleImportFile(this.files[0])">
       <button class="btn btn-success" onclick="exportCSV()">⬇ Esporta CSV</button>
       <button class="btn btn-outline" onclick="exportExcel()">⬇ Excel</button>
       <button class="btn btn-danger btn-sm" onclick="clearAll()">🗑 Svuota sessione</button>
@@ -456,9 +507,22 @@
       <div class="table-title">📋 Partecipanti — Sessione corrente</div>
       <div class="table-actions">
         <button class="btn btn-sm btn-white-outline" onclick="addRow()">+ Riga</button>
-        <button class="btn btn-sm btn-white" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn btn-sm btn-white" onclick="printTable()">🖨 Stampa</button>
+        <button class="btn btn-sm btn-white-outline" onclick="exportCSV()">⬇ CSV</button>
         <button class="btn btn-sm btn-white-outline" onclick="exportExcel()">⬇ Excel</button>
       </div>
+    </div>
+    <div class="filter-bar" id="filterBar">
+      <input type="text" id="fSearch" placeholder="🔍 Cerca cognome, nome, città…" oninput="filters.q=this.value;applyFilters()">
+      <select id="fSocieta" onchange="filters.societa=this.value;applyFilters()"><option value="">Tutte le società</option></select>
+      <select id="fTaglia" onchange="filters.taglia=this.value;applyFilters()"><option value="">Tutte le taglie</option></select>
+      <div class="ftags">
+        <button type="button" class="ftag" data-tag="praticante" onclick="toggleTag('praticante',this)">Praticante</button>
+        <button type="button" class="ftag" data-tag="istruttore" onclick="toggleTag('istruttore',this)">Istruttore</button>
+        <button type="button" class="ftag" data-tag="miglio_rosso" onclick="toggleTag('miglio_rosso',this)">Miglio Rosso</button>
+      </div>
+      <span class="filter-count" id="filterCount">0 di 0</span>
+      <button class="btn-clear" id="btnClear" onclick="clearFilters()" style="display:none;">✕ Azzera</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -489,7 +553,7 @@
 
 </main>
 
-<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.0</footer>
+<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.1</footer>
 
 <!-- API KEY MODAL -->
 <div class="modal-backdrop" id="keyModal">
@@ -502,6 +566,18 @@
       <button class="btn btn-outline" onclick="closeKeyModal()">Annulla</button>
       <button class="btn btn-primary" onclick="saveApiKeyFromModal()">Salva</button>
     </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea"></div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-backdrop" id="importModal">
+  <div class="modal" style="max-width:520px;">
+    <h3>📥 Import iscrizioni</h3>
+    <div id="importBody" style="font-size:13px;color:var(--gray-800);line-height:1.6;margin-bottom:1rem;"></div>
+    <div class="modal-actions" id="importActions"></div>
   </div>
 </div>
 
@@ -519,6 +595,9 @@ let imgBase64 = '';
 let imgMimeType = 'image/jpeg';
 let currentSocieta = '';
 let schedeCount = 0;
+
+let filters = { q:'', societa:'', taglia:'', tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
+let pendingImport = null;
 
 function saveSession() {
   try {
@@ -727,35 +806,128 @@ Output esempio: [{"n":1,"cognome":"ROSSI","nome":"MARIO","nato_il":"01.01.80","c
 function renderTable() {
   const tbody = document.getElementById('tableBody');
   const emptyState = document.getElementById('emptyState');
+  const emptyP = emptyState.querySelector('p');
 
   tbody.innerHTML = '';
+  refreshFilterOptions();
 
   if (allRows.length === 0) {
     emptyState.style.display = 'block';
+    emptyP.innerHTML = 'Nessun partecipante ancora.<br>Carica una scheda per iniziare.';
     updateStats();
+    updateFilterCount(0);
     return;
   }
-  emptyState.style.display = 'none';
 
-  allRows.forEach((r, i) => {
+  const idxs = getFilteredIndices();
+
+  if (idxs.length === 0) {
+    emptyState.style.display = 'block';
+    emptyP.innerHTML = 'Nessun partecipante corrisponde ai filtri attivi.<br><span style="font-size:12px;">Modifica o azzera i filtri.</span>';
+  } else {
+    emptyState.style.display = 'none';
+  }
+
+  // pos = numero progressivo nella vista filtrata; ri = indice REALE in allRows
+  idxs.forEach((ri, pos) => {
+    const r = allRows[ri];
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="num">${i+1}</td>
-      <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${i}].cognome=this.value;saveSession()"></td>
-      <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${i}].nome=this.value;saveSession()"></td>
-      <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${i}].nato_il=this.value;saveSession()" style="min-width:68px;"></td>
-      <td><input type="text" value="${esc(r.citta)}" onchange="allRows[${i}].citta=this.value;saveSession()"></td>
-      <td class="check"><input type="text" value="${esc(r.taglia)}" class="taglia-input" onchange="allRows[${i}].taglia=this.value;saveSession()" style="max-width:44px;text-align:center;"></td>
-      <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${i}].praticante=this.checked;saveSession();updateStats()"></td>
-      <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${i}].istruttore=this.checked;saveSession();updateStats()"></td>
-      <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${i}].miglio_rosso=this.checked;saveSession();updateStats()"></td>
-      <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${i}].societa=this.value;saveSession()" placeholder="—"></td>
-      <td class="action-col"><button class="btn-del" onclick="deleteRow(${i})" title="Elimina">✕</button></td>
+      <td class="num">${pos+1}</td>
+      <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${ri}].cognome=this.value;saveSession()"></td>
+      <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${ri}].nome=this.value;saveSession()"></td>
+      <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${ri}].nato_il=this.value;saveSession()" style="min-width:68px;"></td>
+      <td><input type="text" value="${esc(r.citta)}" onchange="allRows[${ri}].citta=this.value;saveSession()"></td>
+      <td class="check"><input type="text" value="${esc(r.taglia)}" class="taglia-input" onchange="allRows[${ri}].taglia=this.value;saveSession()" style="max-width:44px;text-align:center;"></td>
+      <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${ri}].praticante=this.checked;saveSession();updateStats()"></td>
+      <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${ri}].istruttore=this.checked;saveSession();updateStats()"></td>
+      <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${ri}].miglio_rosso=this.checked;saveSession();updateStats()"></td>
+      <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${ri}].societa=this.value;saveSession();refreshFilterOptions()" placeholder="—"></td>
+      <td class="action-col"><button class="btn-del" onclick="deleteRow(${ri})" title="Elimina">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
 
   updateStats();
+  updateFilterCount(idxs.length);
+}
+
+// ============================================================
+// FILTRI
+// ============================================================
+function getFilteredIndices() {
+  const q = filters.q.trim().toLowerCase();
+  const out = [];
+  allRows.forEach((r, i) => {
+    if (q) {
+      const hay = ((r.cognome||'')+' '+(r.nome||'')+' '+(r.citta||'')).toLowerCase();
+      if (!hay.includes(q)) return;
+    }
+    if (filters.societa && (r.societa||'').trim() !== filters.societa) return;
+    if (filters.taglia && (r.taglia||'').toString().trim().toUpperCase() !== filters.taglia) return;
+    if (filters.tags.praticante && !r.praticante) return;
+    if (filters.tags.istruttore && !r.istruttore) return;
+    if (filters.tags.miglio_rosso && !r.miglio_rosso) return;
+    out.push(i);
+  });
+  return out;
+}
+
+function applyFilters() { renderTable(); }
+
+function toggleTag(tag, el) {
+  filters.tags[tag] = !filters.tags[tag];
+  el.classList.toggle('active', filters.tags[tag]);
+  applyFilters();
+}
+
+function clearFilters() {
+  filters = { q:'', societa:'', taglia:'', tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
+  const s = document.getElementById('fSearch'); if (s) s.value = '';
+  document.querySelectorAll('.ftag').forEach(b => b.classList.remove('active'));
+  renderTable();
+}
+
+function refreshFilterOptions() {
+  const socSel = document.getElementById('fSocieta');
+  if (!socSel) return;
+  const socs = [...new Set(allRows.map(r => (r.societa||'').trim()).filter(Boolean))]
+    .sort((a,b) => a.localeCompare(b,'it'));
+  if (filters.societa && !socs.includes(filters.societa)) filters.societa = '';
+  socSel.innerHTML = '<option value="">Tutte le società</option>' +
+    socs.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  socSel.value = filters.societa;
+
+  const tagSel = document.getElementById('fTaglia');
+  const std = ['XS','S','M','L','XL','XXL'];
+  const present = [...new Set(allRows.map(r => (r.taglia||'').toString().trim().toUpperCase()).filter(Boolean))];
+  const tg = [...std, ...present.filter(t => !std.includes(t))];
+  if (filters.taglia && !tg.includes(filters.taglia)) filters.taglia = '';
+  tagSel.innerHTML = '<option value="">Tutte le taglie</option>' +
+    tg.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  tagSel.value = filters.taglia;
+}
+
+function updateFilterCount(n) {
+  const el = document.getElementById('filterCount');
+  if (el) el.textContent = `${n} di ${allRows.length}`;
+  const anyF = filters.q || filters.societa || filters.taglia ||
+    filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso;
+  const clr = document.getElementById('btnClear');
+  if (clr) clr.style.display = anyF ? 'inline-flex' : 'none';
+}
+
+function describeFilters() {
+  const parts = [];
+  if (filters.q) parts.push('ricerca "' + filters.q + '"');
+  if (filters.societa) parts.push('Società: ' + filters.societa);
+  if (filters.taglia) parts.push('taglia ' + filters.taglia);
+  const tags = [];
+  if (filters.tags.praticante) tags.push('Praticante');
+  if (filters.tags.istruttore) tags.push('Istruttore');
+  if (filters.tags.miglio_rosso) tags.push('Miglio Rosso');
+  if (tags.length) parts.push('tipo: ' + tags.join(' + '));
+  return parts.join(' · ');
 }
 
 function esc(s) {
@@ -771,15 +943,17 @@ function deleteRow(i) {
 }
 
 function addRow() {
+  const anyF = filters.q || filters.societa || filters.taglia ||
+    filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso;
   allRows.push({
     n: allRows.length+1, cognome:'', nome:'', nato_il:'', citta:'',
     taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'',
     _id: Date.now()
   });
   saveSession();
-  renderTable();
+  if (anyF) clearFilters(); else renderTable();
   const inputs = document.getElementById('tableBody').querySelectorAll('input[type="text"]');
-  if (inputs.length > 0) inputs[inputs.length - 5].focus();
+  if (inputs.length >= 5) inputs[inputs.length - 5].focus();
 }
 
 function clearAll() {
@@ -816,41 +990,41 @@ function updateStats() {
 // EXPORT CSV
 // ============================================================
 function exportCSV() {
-  if (!allRows.length) return toast('Nessun dato da esportare', 'error');
+  const rowsF = getFilteredIndices().map(i => allRows[i]);
+  if (!rowsF.length) return toast('Nessuna riga da esportare (controlla i filtri)', 'error');
   const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
   const rows = [headers.join(';')];
-  allRows.forEach(r => {
+  rowsF.forEach((r, i) => {
     rows.push([
-      r.n, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+      i+1, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
       r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
     ].map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(';'));
   });
   const blob = new Blob(['\uFEFF' + rows.join('\r\n')], {type:'text/csv;charset=utf-8;'});
   downloadBlob(blob, 'NW_partecipanti_' + dateTag() + '.csv');
-  toast('CSV scaricato ✓', 'success');
+  toast('CSV scaricato ✓ (' + rowsF.length + ' righe)', 'success');
 }
 
 // ============================================================
 // EXPORT EXCEL (XLSX via HTML table trick compatibile con Excel)
 // ============================================================
 function exportExcel() {
-  if (!allRows.length) return toast('Nessun dato da esportare', 'error');
+  const rowsF = getFilteredIndices().map(i => allRows[i]);
+  if (!rowsF.length) return toast('Nessuna riga da esportare (controlla i filtri)', 'error');
 
   const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
   let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
   html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Partecipanti</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
   html += '<table border="1" style="border-collapse:collapse;">';
 
-  // Header row
   html += '<tr style="background:#B22222;color:white;font-weight:bold;">';
   headers.forEach(h => html += `<td style="padding:6px 10px;">${h}</td>`);
   html += '</tr>';
 
-  // Data rows
-  allRows.forEach((r, i) => {
+  rowsF.forEach((r, i) => {
     const bg = i % 2 === 0 ? '#FFFFFF' : '#F9F9F9';
     html += `<tr style="background:${bg};">`;
-    [r.n, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+    [i+1, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
     ].forEach(v => html += `<td style="padding:5px 10px;">${String(v||'')}</td>`);
     html += '</tr>';
@@ -859,7 +1033,241 @@ function exportExcel() {
 
   const blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8;'});
   downloadBlob(blob, 'NW_partecipanti_' + dateTag() + '.xls');
-  toast('Excel scaricato ✓', 'success');
+  toast('Excel scaricato ✓ (' + rowsF.length + ' righe)', 'success');
+}
+
+// ============================================================
+// STAMPA (A4 verticale, solo righe filtrate)
+// ============================================================
+function printTable() {
+  if (!allRows.length) return toast('Niente da stampare', 'error');
+  const idxs = getFilteredIndices();
+  if (!idxs.length) return toast('Nessuna riga da stampare con i filtri attivi', 'error');
+
+  const rows = idxs.map(i => allRows[i]);
+  const ck = b => b ? '✓' : '';
+  const af = describeFilters();
+  const oggi = new Date().toLocaleDateString('it-IT');
+
+  let h = `<div class="print-head">
+      <h1>NW Schede OCR — Silewalking</h1>
+      <div class="print-meta">Stampato il ${oggi} · ${rows.length} partecipant${rows.length===1?'e':'i'}</div>
+      ${af ? `<div class="print-meta">Filtri attivi: ${esc(af)}</div>` : ''}
+    </div>
+    <table><thead><tr>
+      <th>#</th><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Città</th><th>Taglia</th>
+      <th>Pratic.</th><th>Istrut.</th><th>Miglio R.</th><th>Società</th>
+    </tr></thead><tbody>`;
+  rows.forEach((r, i) => {
+    h += `<tr>
+      <td>${i+1}</td>
+      <td>${esc(r.cognome)}</td>
+      <td>${esc(r.nome)}</td>
+      <td>${esc(r.nato_il)}</td>
+      <td>${esc(r.citta)}</td>
+      <td style="text-align:center;">${esc(r.taglia)}</td>
+      <td style="text-align:center;">${ck(r.praticante)}</td>
+      <td style="text-align:center;">${ck(r.istruttore)}</td>
+      <td style="text-align:center;">${ck(r.miglio_rosso)}</td>
+      <td>${esc(r.societa)}</td>
+    </tr>`;
+  });
+  h += '</tbody></table>';
+
+  document.getElementById('printArea').innerHTML = h;
+  window.print();
+}
+
+// ============================================================
+// IMPORT EXCEL / CSV
+// ============================================================
+const FIELD_MAP = [
+  ['cognome',      ['cognome','surname']],
+  ['miglio_rosso', ['miglio rosso','miglio r','miglio','mr','gara']],
+  ['istruttore',   ['istruttore','istrut']],
+  ['praticante',   ['praticante','pratic','camminatore']],
+  ['nato_il',      ['nato il','nata il','data di nascita','data nascita','nascita','nato','nata','data nasc']],
+  ['citta',        ['citta','residenza','comune','paese']],
+  ['taglia',       ['taglia','size','maglia','maglietta']],
+  ['societa',      ['societa','asd','associazione','gruppo','team']],
+  ['nome',         ['nome','name']],
+];
+
+function normHead(s) {
+  return (s==null?'':String(s)).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function truthyCell(v) {
+  const s = (v==null?'':String(v)).trim().toLowerCase();
+  return ['x','si','sì','s','1','true','vero','✓','✔','yes','y'].includes(s);
+}
+
+function dupKey(r) {
+  return ((r.cognome||'')+'|'+(r.nome||'')+'|'+(r.nato_il||''))
+    .toLowerCase().replace(/\s+/g,' ').trim();
+}
+
+function ensureXLSX() {
+  return new Promise((resolve, reject) => {
+    if (window.XLSX) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Non riesco a caricare la libreria Excel — serve la connessione internet.'));
+    document.head.appendChild(s);
+  });
+}
+
+function triggerImport() {
+  document.getElementById('importInput').click();
+}
+
+async function handleImportFile(file) {
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  try {
+    let aoa;
+    if (name.endsWith('.csv')) {
+      aoa = parseCSV(await file.text());
+    } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      toast('Carico la libreria Excel…');
+      await ensureXLSX();
+      const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
+    } else {
+      return toast('Formato non supportato — usa .xlsx, .xls o .csv', 'error');
+    }
+    processImportAOA(aoa);
+  } catch (err) {
+    toast(err.message || 'Errore nella lettura del file', 'error');
+  } finally {
+    document.getElementById('importInput').value = '';
+  }
+}
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, '');
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  const delim = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ',';
+  const rows = []; let cur = []; let val = ''; let inq = false;
+  for (let i=0; i<text.length; i++) {
+    const c = text[i];
+    if (inq) {
+      if (c === '"') { if (text[i+1] === '"') { val+='"'; i++; } else inq=false; }
+      else val += c;
+    } else {
+      if (c === '"') inq = true;
+      else if (c === delim) { cur.push(val); val=''; }
+      else if (c === '\n') { cur.push(val); rows.push(cur); cur=[]; val=''; }
+      else if (c === '\r') { /* skip */ }
+      else val += c;
+    }
+  }
+  if (val.length || cur.length) { cur.push(val); rows.push(cur); }
+  return rows;
+}
+
+function processImportAOA(aoa) {
+  if (!aoa || !aoa.length) return toast('Il file sembra vuoto', 'error');
+
+  // trova la riga delle intestazioni (cerca "cognome"/"nome" nelle prime 10 righe)
+  let hIdx = -1;
+  for (let i=0; i<Math.min(aoa.length, 10); i++) {
+    const norm = (aoa[i]||[]).map(normHead);
+    if (norm.some(h => h.includes('cognome')) || norm.some(h => h === 'nome' || h.includes('nome'))) { hIdx = i; break; }
+  }
+  if (hIdx < 0) hIdx = 0;
+
+  const header = (aoa[hIdx]||[]).map(normHead);
+  const colMap = {}; const usedFields = new Set();
+  header.forEach((h, ci) => {
+    if (!h) return;
+    for (const [field, pats] of FIELD_MAP) {
+      if (usedFields.has(field)) continue;
+      if (pats.some(p => h === p || h.includes(p))) { colMap[ci] = field; usedFields.add(field); break; }
+    }
+  });
+
+  const recognized = Object.values(colMap);
+  if (!recognized.includes('cognome') && !recognized.includes('nome')) {
+    return toast('Non riconosco le colonne (manca Cognome/Nome). Controlla le intestazioni del file.', 'error');
+  }
+
+  const newRows = [];
+  for (let i=hIdx+1; i<aoa.length; i++) {
+    const row = aoa[i]; if (!row) continue;
+    const o = { cognome:'', nome:'', nato_il:'', citta:'', taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'' };
+    Object.entries(colMap).forEach(([ci, field]) => {
+      const raw = row[ci];
+      if (field === 'praticante' || field === 'istruttore' || field === 'miglio_rosso') o[field] = truthyCell(raw);
+      else if (field === 'taglia') o[field] = (raw==null?'':String(raw)).trim().toUpperCase();
+      else o[field] = (raw==null?'':String(raw)).trim();
+    });
+    if (!o.cognome && !o.nome) continue; // salta righe vuote
+    newRows.push(o);
+  }
+
+  if (!newRows.length) return toast('Nessuna riga dati trovata sotto le intestazioni', 'error');
+
+  // doppioni: vs sessione esistente + interni al file
+  const existKeys = new Set(allRows.map(dupKey));
+  const seen = new Set();
+  newRows.forEach(r => {
+    const k = dupKey(r);
+    r._dup = existKeys.has(k) || seen.has(k);
+    seen.add(k);
+  });
+
+  pendingImport = { rows:newRows, dups:newRows.filter(r => r._dup), recognized };
+  showImportModal();
+}
+
+function showImportModal() {
+  const { rows, dups, recognized } = pendingImport;
+  const labels = { cognome:'Cognome', nome:'Nome', nato_il:'Nato il', citta:'Città', taglia:'Taglia', praticante:'Praticante', istruttore:'Istruttore', miglio_rosso:'Miglio Rosso', societa:'Società' };
+
+  let html = `<p style="margin-bottom:8px;"><b>${rows.length}</b> righe trovate nel file.</p>`;
+  html += `<p style="margin-bottom:8px;">Colonne riconosciute: <b>${recognized.map(f => labels[f]||f).join(', ')}</b></p>`;
+  if (dups.length) {
+    html += `<div style="background:#FFF3E0;border-radius:6px;padding:10px 12px;margin-top:8px;">`;
+    html += `<b style="color:#E65100;">⚠ ${dups.length} possibili doppioni</b> (stesso cognome + nome + data di nascita, già in sessione o ripetuti nel file):<ul style="margin:6px 0 0 18px;padding:0;">`;
+    dups.slice(0,12).forEach(r => html += `<li>${esc(r.cognome)} ${esc(r.nome)}${r.nato_il?' ('+esc(r.nato_il)+')':''}</li>`);
+    if (dups.length > 12) html += `<li>… e altri ${dups.length-12}</li>`;
+    html += `</ul></div>`;
+  } else {
+    html += `<p style="color:var(--green);">✓ Nessun doppione rilevato.</p>`;
+  }
+  document.getElementById('importBody').innerHTML = html;
+
+  let actions = `<button class="btn btn-outline" onclick="closeImportModal()">Annulla</button>`;
+  if (dups.length) actions += `<button class="btn btn-outline" onclick="confirmImport('new')">Solo nuove (${rows.length-dups.length})</button>`;
+  actions += `<button class="btn btn-primary" onclick="confirmImport('all')">Aggiungi tutte (${rows.length})</button>`;
+  document.getElementById('importActions').innerHTML = actions;
+
+  document.getElementById('importModal').classList.add('open');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('open');
+  pendingImport = null;
+}
+
+function confirmImport(mode) {
+  if (!pendingImport) return;
+  let toAdd = pendingImport.rows;
+  if (mode === 'new') toAdd = toAdd.filter(r => !r._dup);
+  if (!toAdd.length) { closeImportModal(); return toast('Niente da aggiungere', 'error'); }
+
+  const offset = allRows.length;
+  toAdd.forEach((r, i) => { delete r._dup; r._id = Date.now() + i; r.n = offset + i + 1; });
+  allRows = allRows.concat(toAdd);
+  saveSession();
+  closeImportModal();
+  renderTable();
+  toast(toAdd.length + ' partecipanti importati ✓', 'success');
 }
 
 function downloadBlob(blob, filename) {
@@ -899,6 +1307,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Close modal on backdrop click
 document.getElementById('keyModal').addEventListener('click', function(e) {
   if (e.target === this) closeKeyModal();
+});
+document.getElementById('importModal').addEventListener('click', function(e) {
+  if (e.target === this) closeImportModal();
 });
 </script>
 </body>
