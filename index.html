@@ -257,7 +257,7 @@
   .btn-white-outline:hover { background: rgba(255,255,255,0.15); }
 
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px; }
   thead th {
     background: var(--gray-50);
     padding: 8px 10px;
@@ -396,13 +396,22 @@
     #printArea .print-head { margin-bottom: 10px; }
     #printArea h1 { font-size: 16px; margin: 0 0 2px; }
     #printArea .print-meta { font-size: 11px; color: #333; }
-    #printArea table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+    #printArea table { width: 100%; border-collapse: collapse; font-size: 10.5px; table-layout: fixed; }
     #printArea thead { display: table-header-group; }
-    #printArea th, #printArea td { border: 1px solid #888; padding: 3px 5px; text-align: left; }
+    #printArea th, #printArea td {
+      border: 1px solid #888; padding: 3px 5px; text-align: left;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
     #printArea th {
-      background: #eee !important;
+      background: var(--red) !important;
+      color: #fff !important;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
       font-size: 9.5px; text-transform: uppercase; letter-spacing: .3px;
+      hyphens: manual; -webkit-hyphens: manual;
     }
     #printArea tr { page-break-inside: avoid; }
   }
@@ -507,6 +516,7 @@
       <div class="table-title">📋 Partecipanti — Sessione corrente</div>
       <div class="table-actions">
         <button class="btn btn-sm btn-white-outline" onclick="addRow()">+ Riga</button>
+        <button class="btn btn-sm btn-white-outline" onclick="assignBibs()">🎽 Pettorali</button>
         <button class="btn btn-sm btn-white" onclick="printTable()">🖨 Stampa</button>
         <button class="btn btn-sm btn-white-outline" onclick="exportCSV()">⬇ CSV</button>
         <button class="btn btn-sm btn-white-outline" onclick="exportExcel()">⬇ Excel</button>
@@ -529,6 +539,7 @@
         <thead>
           <tr>
             <th style="width:32px;">#</th>
+            <th style="width:54px; text-align:center;">Pett.</th>
             <th style="width:110px;">Cognome</th>
             <th style="width:90px;">Nome</th>
             <th style="width:80px;">Nato il</th>
@@ -553,7 +564,7 @@
 
 </main>
 
-<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.1</footer>
+<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.2</footer>
 
 <!-- API KEY MODAL -->
 <div class="modal-backdrop" id="keyModal">
@@ -581,6 +592,15 @@
   </div>
 </div>
 
+<!-- PETTORALI MODAL -->
+<div class="modal-backdrop" id="bibModal">
+  <div class="modal" style="max-width:500px;">
+    <h3>🎽 Assegna pettorali</h3>
+    <div id="bibBody" style="font-size:13px;color:var(--gray-800);line-height:1.6;margin-bottom:1rem;"></div>
+    <div class="modal-actions" id="bibActions"></div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -598,6 +618,7 @@ let schedeCount = 0;
 
 let filters = { q:'', societa:'', taglia:'', tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
 let pendingImport = null;
+let pendingBibs = null;
 
 function saveSession() {
   try {
@@ -773,6 +794,7 @@ Output esempio: [{"n":1,"cognome":"ROSSI","nome":"MARIO","nato_il":"01.01.80","c
     const offset = allRows.length;
     parsed.forEach((r, i) => {
       r.societa = currentSocieta || '';
+      r.pettorale = r.pettorale || '';
       r._id = Date.now() + i;
       r.n = offset + i + 1;
     });
@@ -834,6 +856,7 @@ function renderTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="num">${pos+1}</td>
+      <td class="check"><input type="text" value="${esc(r.pettorale)}" onchange="allRows[${ri}].pettorale=this.value;saveSession()" style="max-width:46px;text-align:center;font-weight:600;"></td>
       <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${ri}].cognome=this.value;saveSession()"></td>
       <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${ri}].nome=this.value;saveSession()"></td>
       <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${ri}].nato_il=this.value;saveSession()" style="min-width:68px;"></td>
@@ -947,7 +970,7 @@ function addRow() {
     filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso;
   allRows.push({
     n: allRows.length+1, cognome:'', nome:'', nato_il:'', citta:'',
-    taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'',
+    taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'', pettorale:'',
     _id: Date.now()
   });
   saveSession();
@@ -992,11 +1015,11 @@ function updateStats() {
 function exportCSV() {
   const rowsF = getFilteredIndices().map(i => allRows[i]);
   if (!rowsF.length) return toast('Nessuna riga da esportare (controlla i filtri)', 'error');
-  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
+  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
   const rows = [headers.join(';')];
   rowsF.forEach((r, i) => {
     rows.push([
-      i+1, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+      i+1, r.pettorale, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
       r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
     ].map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(';'));
   });
@@ -1012,7 +1035,7 @@ function exportExcel() {
   const rowsF = getFilteredIndices().map(i => allRows[i]);
   if (!rowsF.length) return toast('Nessuna riga da esportare (controlla i filtri)', 'error');
 
-  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
+  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
   let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
   html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Partecipanti</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
   html += '<table border="1" style="border-collapse:collapse;">';
@@ -1024,7 +1047,7 @@ function exportExcel() {
   rowsF.forEach((r, i) => {
     const bg = i % 2 === 0 ? '#FFFFFF' : '#F9F9F9';
     html += `<tr style="background:${bg};">`;
-    [i+1, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+    [i+1, r.pettorale, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
     ].forEach(v => html += `<td style="padding:5px 10px;">${String(v||'')}</td>`);
     html += '</tr>';
@@ -1054,13 +1077,18 @@ function printTable() {
       <div class="print-meta">Stampato il ${oggi} · ${rows.length} partecipant${rows.length===1?'e':'i'}</div>
       ${af ? `<div class="print-meta">Filtri attivi: ${esc(af)}</div>` : ''}
     </div>
-    <table><thead><tr>
-      <th>#</th><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Città</th><th>Taglia</th>
+    <table><colgroup>
+      <col style="width:4%"><col style="width:7%"><col style="width:13%"><col style="width:11%">
+      <col style="width:9%"><col style="width:13%"><col style="width:6%"><col style="width:6%">
+      <col style="width:6%"><col style="width:7%"><col style="width:18%">
+    </colgroup><thead><tr>
+      <th>#</th><th>Pett.</th><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Città</th><th>Taglia</th>
       <th>Pratic.</th><th>Istrut.</th><th>Miglio R.</th><th>Società</th>
     </tr></thead><tbody>`;
   rows.forEach((r, i) => {
     h += `<tr>
-      <td>${i+1}</td>
+      <td style="text-align:center;">${i+1}</td>
+      <td style="text-align:center;font-weight:700;">${esc(r.pettorale)}</td>
       <td>${esc(r.cognome)}</td>
       <td>${esc(r.nome)}</td>
       <td>${esc(r.nato_il)}</td>
@@ -1270,6 +1298,81 @@ function confirmImport(mode) {
   toast(toAdd.length + ' partecipanti importati ✓', 'success');
 }
 
+// ============================================================
+// PETTORALI (assegnazione casuale — solo Miglio Rosso, da 1)
+// ============================================================
+const BIB_START = 1;
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function assignBibs() {
+  const mrIdx = allRows.map((r, i) => i).filter(i => allRows[i].miglio_rosso);
+  if (!mrIdx.length) return toast('Nessun partecipante Miglio Rosso in sessione', 'error');
+  const conBib = mrIdx.filter(i => (allRows[i].pettorale || '').toString().trim() !== '');
+  pendingBibs = { mrIdx, conBibCount: conBib.length };
+  showBibModal();
+}
+
+function showBibModal() {
+  const { mrIdx, conBibCount } = pendingBibs;
+  const n = mrIdx.length;
+  let html = `<p style="margin-bottom:8px;"><b>${n}</b> partecipant${n===1?'e':'i'} Miglio Rosso.</p>`;
+  html += `<p style="margin-bottom:8px;">Assegno i pettorali <b>da ${BIB_START} a ${BIB_START + n - 1}</b>, mescolati in ordine casuale.</p>`;
+  let actions = `<button class="btn btn-outline" onclick="closeBibModal()">Annulla</button>`;
+  if (conBibCount > 0) {
+    html += `<div style="background:#FFF3E0;border-radius:6px;padding:10px 12px;margin-top:8px;color:#E65100;">⚠ <b>${conBibCount}</b> ${conBibCount===1?'ha':'hanno'} già un pettorale. Scegli come procedere:</div>`;
+    actions += `<button class="btn btn-outline" onclick="confirmBibs('missing')">Solo i mancanti</button>`;
+    actions += `<button class="btn btn-primary" onclick="confirmBibs('all')">Riassegna tutti</button>`;
+  } else {
+    actions += `<button class="btn btn-primary" onclick="confirmBibs('all')">Assegna (${n})</button>`;
+  }
+  document.getElementById('bibBody').innerHTML = html;
+  document.getElementById('bibActions').innerHTML = actions;
+  document.getElementById('bibModal').classList.add('open');
+}
+
+function closeBibModal() {
+  document.getElementById('bibModal').classList.remove('open');
+  pendingBibs = null;
+}
+
+function confirmBibs(mode) {
+  if (!pendingBibs) return;
+  const { mrIdx } = pendingBibs;
+  const n = mrIdx.length;
+
+  if (mode === 'all') {
+    const pool = shuffle([...Array(n)].map((_, k) => BIB_START + k));
+    mrIdx.forEach((idx, k) => { allRows[idx].pettorale = String(pool[k]); });
+  } else { // solo i mancanti
+    const used = new Set(
+      mrIdx.map(i => parseInt((allRows[i].pettorale || '').toString().trim(), 10))
+           .filter(v => !isNaN(v))
+    );
+    // numeri liberi da BIB_START in su, esclusi quelli già usati
+    const need = mrIdx.filter(i => (allRows[i].pettorale || '').toString().trim() === '');
+    const pool = [];
+    let cand = BIB_START;
+    while (pool.length < need.length) {
+      if (!used.has(cand)) pool.push(cand);
+      cand++;
+    }
+    shuffle(pool);
+    need.forEach((idx, k) => { allRows[idx].pettorale = String(pool[k]); });
+  }
+
+  saveSession();
+  closeBibModal();
+  renderTable();
+  toast('Pettorali assegnati ✓', 'success');
+}
+
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1310,6 +1413,9 @@ document.getElementById('keyModal').addEventListener('click', function(e) {
 });
 document.getElementById('importModal').addEventListener('click', function(e) {
   if (e.target === this) closeImportModal();
+});
+document.getElementById('bibModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBibModal();
 });
 </script>
 </body>
