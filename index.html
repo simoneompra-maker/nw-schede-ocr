@@ -508,6 +508,10 @@
         <div class="stat-lbl">Miglio Rosso</div>
       </div>
       <div class="stat">
+        <div class="stat-num" id="statSileggiando">0</div>
+        <div class="stat-lbl">Sileggiando</div>
+      </div>
+      <div class="stat">
         <div class="stat-num" id="statSchede">0</div>
         <div class="stat-lbl">Schede</div>
       </div>
@@ -584,6 +588,7 @@
         <button type="button" class="ftag" data-tag="praticante" onclick="toggleTag('praticante',this)">Praticante</button>
         <button type="button" class="ftag" data-tag="istruttore" onclick="toggleTag('istruttore',this)">Istruttore</button>
         <button type="button" class="ftag" data-tag="miglio_rosso" onclick="toggleTag('miglio_rosso',this)">Miglio Rosso</button>
+        <button type="button" class="ftag" data-tag="sileggiando" onclick="toggleTag('sileggiando',this)">Sileggiando</button>
       </div>
       <span class="filter-count" id="filterCount">0 di 0</span>
       <button class="btn-clear" id="btnClear" onclick="clearFilters()" style="display:none;">✕ Azzera filtri</button>
@@ -611,6 +616,7 @@
             <th style="width:62px; text-align:center;">Pratic.</th>
             <th style="width:62px; text-align:center;">Istrut.</th>
             <th style="width:68px; text-align:center;">Miglio R.</th>
+            <th style="width:68px; text-align:center;">Sileg.</th>
             <th style="width:120px;">Società</th>
             <th style="width:36px;"></th>
           </tr>
@@ -627,7 +633,7 @@
 
 </main>
 
-<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.3</footer>
+<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.4</footer>
 
 <!-- API KEY MODAL -->
 <div class="modal-backdrop" id="keyModal">
@@ -679,7 +685,7 @@ let imgMimeType = 'image/jpeg';
 let currentSocieta = '';
 let schedeCount = 0;
 
-let filters = { q:'', societa:[], taglia:[], tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
+let filters = { q:'', societa:[], taglia:[], tags:{ praticante:false, istruttore:false, miglio_rosso:false, sileggiando:false } };
 let selectedIds = new Set();
 let uidCounter = 1;
 function newId() { return 'r' + (uidCounter++); }
@@ -935,6 +941,7 @@ function renderTable() {
       <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${ri}].praticante=this.checked;saveSession();updateStats()"></td>
       <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${ri}].istruttore=this.checked;saveSession();updateStats()"></td>
       <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${ri}].miglio_rosso=this.checked;saveSession();updateStats()"></td>
+      <td class="check"><input type="checkbox" ${r.sileggiando?'checked':''} onchange="allRows[${ri}].sileggiando=this.checked;saveSession();updateStats()"></td>
       <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${ri}].societa=this.value;saveSession();refreshFilterOptions()" placeholder="—"></td>
       <td class="action-col"><button class="btn-del" onclick="deleteRow(${ri})" title="Elimina">✕</button></td>
     `;
@@ -963,6 +970,7 @@ function getFilteredIndices() {
     if (filters.tags.praticante && !r.praticante) return;
     if (filters.tags.istruttore && !r.istruttore) return;
     if (filters.tags.miglio_rosso && !r.miglio_rosso) return;
+    if (filters.tags.sileggiando && !r.sileggiando) return;
     out.push(i);
   });
   return out;
@@ -977,7 +985,7 @@ function toggleTag(tag, el) {
 }
 
 function clearFilters() {
-  filters = { q:'', societa:[], taglia:[], tags:{ praticante:false, istruttore:false, miglio_rosso:false } };
+  filters = { q:'', societa:[], taglia:[], tags:{ praticante:false, istruttore:false, miglio_rosso:false, sileggiando:false } };
   const s = document.getElementById('fSearch'); if (s) s.value = '';
   document.querySelectorAll('.ftag').forEach(b => b.classList.remove('active'));
   closeAllMsPanels();
@@ -1052,7 +1060,7 @@ function updateFilterCount(n) {
   const el = document.getElementById('filterCount');
   if (el) el.textContent = `${n} di ${allRows.length}`;
   const anyF = filters.q || filters.societa.length || filters.taglia.length ||
-    filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso;
+    filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso || filters.tags.sileggiando;
   const clr = document.getElementById('btnClear');
   if (clr) clr.style.display = anyF ? 'inline-flex' : 'none';
 }
@@ -1066,6 +1074,7 @@ function describeFilters() {
   if (filters.tags.praticante) tags.push('Praticante');
   if (filters.tags.istruttore) tags.push('Istruttore');
   if (filters.tags.miglio_rosso) tags.push('Miglio Rosso');
+  if (filters.tags.sileggiando) tags.push('Sileggiando');
   if (tags.length) parts.push('tipo: ' + tags.join(' + '));
   return parts.join(' · ');
 }
@@ -1167,10 +1176,10 @@ function deleteRow(i) {
 
 function addRow() {
   const anyF = filters.q || filters.societa || filters.taglia ||
-    filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso;
+    filters.tags.praticante || filters.tags.istruttore || filters.tags.miglio_rosso || filters.tags.sileggiando;
   allRows.push({
     n: allRows.length+1, cognome:'', nome:'', nato_il:'', citta:'',
-    taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'', pettorale:'',
+    taglia:'', praticante:false, istruttore:false, miglio_rosso:false, sileggiando:false, societa:'', pettorale:'',
     _id: newId()
   });
   saveSession();
@@ -1197,11 +1206,13 @@ function updateStats() {
   const prat = allRows.filter(r => r.praticante).length;
   const istr = allRows.filter(r => r.istruttore).length;
   const miglio = allRows.filter(r => r.miglio_rosso).length;
+  const sileg = allRows.filter(r => r.sileggiando).length;
 
   document.getElementById('statTotale').textContent = tot;
   document.getElementById('statPraticanti').textContent = prat;
   document.getElementById('statIstruttori').textContent = istr;
   document.getElementById('statMiglio').textContent = miglio;
+  document.getElementById('statSileggiando').textContent = sileg;
   document.getElementById('statSchede').textContent = schedeCount;
 
   const badge = document.getElementById('badgeCount');
@@ -1219,12 +1230,12 @@ function exportCSV() {
 }
 function doExportCSV(rowsF) {
   if (!rowsF.length) return toast('Nessuna riga da esportare', 'error');
-  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
+  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Sileggiando','Società'];
   const rows = [headers.join(';')];
   rowsF.forEach((r, i) => {
     rows.push([
       i+1, r.pettorale, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
-      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
+      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.sileggiando?'X':'', r.societa
     ].map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(';'));
   });
   const blob = new Blob(['\uFEFF' + rows.join('\r\n')], {type:'text/csv;charset=utf-8;'});
@@ -1243,7 +1254,7 @@ function exportExcel() {
 function doExportExcel(rowsF) {
   if (!rowsF.length) return toast('Nessuna riga da esportare', 'error');
 
-  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Società'];
+  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Sileggiando','Società'];
   let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
   html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Partecipanti</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
   html += '<table border="1" style="border-collapse:collapse;">';
@@ -1256,7 +1267,7 @@ function doExportExcel(rowsF) {
     const bg = i % 2 === 0 ? '#FFFFFF' : '#F9F9F9';
     html += `<tr style="background:${bg};">`;
     [i+1, r.pettorale, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
-     r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.societa
+     r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.sileggiando?'X':'', r.societa
     ].forEach(v => html += `<td style="padding:5px 10px;">${String(v||'')}</td>`);
     html += '</tr>';
   });
@@ -1289,12 +1300,12 @@ function doPrint(rows, scopeText) {
       ${scopeText ? `<div class="print-meta">${esc(scopeText)}</div>` : ''}
     </div>
     <table><colgroup>
-      <col style="width:4%"><col style="width:7%"><col style="width:13%"><col style="width:11%">
-      <col style="width:9%"><col style="width:13%"><col style="width:6%"><col style="width:6%">
-      <col style="width:6%"><col style="width:7%"><col style="width:18%">
+      <col style="width:3%"><col style="width:6%"><col style="width:13%"><col style="width:11%">
+      <col style="width:9%"><col style="width:13%"><col style="width:5%"><col style="width:5%">
+      <col style="width:5%"><col style="width:6%"><col style="width:6%"><col style="width:18%">
     </colgroup><thead><tr>
       <th>#</th><th>Pett.</th><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Città</th><th>Taglia</th>
-      <th>Pratic.</th><th>Istrut.</th><th>Miglio R.</th><th>Società</th>
+      <th>Pratic.</th><th>Istrut.</th><th>Miglio R.</th><th>Sileg.</th><th>Società</th>
     </tr></thead><tbody>`;
   rows.forEach((r, i) => {
     h += `<tr>
@@ -1308,6 +1319,7 @@ function doPrint(rows, scopeText) {
       <td style="text-align:center;">${ck(r.praticante)}</td>
       <td style="text-align:center;">${ck(r.istruttore)}</td>
       <td style="text-align:center;">${ck(r.miglio_rosso)}</td>
+      <td style="text-align:center;">${ck(r.sileggiando)}</td>
       <td>${esc(r.societa)}</td>
     </tr>`;
   });
@@ -1323,6 +1335,7 @@ function doPrint(rows, scopeText) {
 const FIELD_MAP = [
   ['cognome',      ['cognome','surname']],
   ['miglio_rosso', ['miglio rosso','miglio r','miglio','mr','gara']],
+  ['sileggiando',   ['sileggiando','sileg']],
   ['istruttore',   ['istruttore','istrut']],
   ['praticante',   ['praticante','pratic','camminatore']],
   ['nato_il',      ['nato il','nata il','data di nascita','data nascita','nascita','nato','nata','data nasc']],
@@ -1438,10 +1451,10 @@ function processImportAOA(aoa) {
   const newRows = [];
   for (let i=hIdx+1; i<aoa.length; i++) {
     const row = aoa[i]; if (!row) continue;
-    const o = { cognome:'', nome:'', nato_il:'', citta:'', taglia:'', praticante:false, istruttore:false, miglio_rosso:false, societa:'' };
+    const o = { cognome:'', nome:'', nato_il:'', citta:'', taglia:'', praticante:false, istruttore:false, miglio_rosso:false, sileggiando:false, societa:'' };
     Object.entries(colMap).forEach(([ci, field]) => {
       const raw = row[ci];
-      if (field === 'praticante' || field === 'istruttore' || field === 'miglio_rosso') o[field] = truthyCell(raw);
+      if (field === 'praticante' || field === 'istruttore' || field === 'miglio_rosso' || field === 'sileggiando') o[field] = truthyCell(raw);
       else if (field === 'taglia') o[field] = (raw==null?'':String(raw)).trim().toUpperCase();
       else o[field] = (raw==null?'':String(raw)).trim();
     });
@@ -1466,7 +1479,7 @@ function processImportAOA(aoa) {
 
 function showImportModal() {
   const { rows, dups, recognized } = pendingImport;
-  const labels = { cognome:'Cognome', nome:'Nome', nato_il:'Nato il', citta:'Città', taglia:'Taglia', praticante:'Praticante', istruttore:'Istruttore', miglio_rosso:'Miglio Rosso', societa:'Società' };
+  const labels = { cognome:'Cognome', nome:'Nome', nato_il:'Nato il', citta:'Città', taglia:'Taglia', praticante:'Praticante', istruttore:'Istruttore', miglio_rosso:'Miglio Rosso', sileggiando:'Sileggiando', societa:'Società' };
 
   let html = `<p style="margin-bottom:8px;"><b>${rows.length}</b> righe trovate nel file.</p>`;
   html += `<p style="margin-bottom:8px;">Colonne riconosciute: <b>${recognized.map(f => labels[f]||f).join(', ')}</b></p>`;
