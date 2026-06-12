@@ -430,6 +430,11 @@
   td.sel input, th.sel input { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
 
   /* TOTALI */
+  .total-row td {
+    background: var(--red-light); font-weight: 700; font-size: 15px;
+    color: var(--red-dark); padding: 11px 8px; border-top: 2px solid var(--red);
+  }
+  .total-row td.tc { text-align: center; }
   .totals-prices { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--gray-800); margin-bottom: 4px; }
   .totals-prices input { width: 64px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: 4px 6px; font-size: 13px; font-family: inherit; }
   .totals-prices input:focus { outline: none; border-color: var(--red); }
@@ -468,6 +473,12 @@
       hyphens: manual; -webkit-hyphens: manual;
     }
     #printArea tr { page-break-inside: avoid; }
+    #printArea tfoot td {
+      font-weight: 700; font-size: 11px;
+      background: #f5dada !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      border-top: 2px solid var(--red);
+    }
   }
 </style>
 </head>
@@ -636,6 +647,7 @@
         </thead>
         <tbody id="tableBody">
         </tbody>
+        <tfoot id="tableFoot"></tfoot>
       </table>
     </div>
     <div class="empty-state" id="emptyState" style="display:none;">
@@ -646,7 +658,7 @@
 
 </main>
 
-<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.5</footer>
+<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.6</footer>
 
 <!-- API KEY MODAL -->
 <div class="modal-backdrop" id="keyModal">
@@ -944,6 +956,7 @@ function renderTable() {
     updateStats();
     updateFilterCount(0);
     updateBulkBar();
+    document.getElementById('tableFoot').innerHTML = '';
     return;
   }
 
@@ -984,6 +997,33 @@ function renderTable() {
   updateFilterCount(idxs.length);
   refreshSelAll(idxs);
   updateBulkBar();
+  renderTotalRow(idxs);
+}
+
+function renderTotalRow(idxs) {
+  const foot = document.getElementById('tableFoot');
+  if (!foot) return;
+  if (!idxs.length) { foot.innerHTML = ''; return; }
+  let prat=0, istr=0, mr=0, sil=0;
+  idxs.forEach(i => {
+    const r = allRows[i];
+    if (r.praticante) prat++;
+    if (r.istruttore) istr++;
+    if (r.miglio_rosso) mr++;
+    if (r.sileggiando) sil++;
+  });
+  const n = idxs.length;
+  const eur = mr*PRICE_MR + (n-mr)*PRICE_STD;
+  foot.innerHTML = `<tr class="total-row">
+    <td colspan="7">TOTALE — ${n} partecipant${n===1?'e':'i'}</td>
+    <td class="tc">${prat}</td>
+    <td class="tc">${istr}</td>
+    <td class="tc">${mr}</td>
+    <td class="tc"></td>
+    <td class="tc">${sil}</td>
+    <td>€ ${eur.toFixed(2)}</td>
+    <td></td>
+  </tr>`;
 }
 
 // ============================================================
@@ -1421,7 +1461,21 @@ function doPrint(rows, scopeText) {
       <td>${esc(r.societa)}</td>
     </tr>`;
   });
-  h += '</tbody></table>';
+  // riga TOTALE
+  let pPrat=0, pIstr=0, pMr=0, pSil=0;
+  rows.forEach(r => { if(r.praticante)pPrat++; if(r.istruttore)pIstr++; if(r.miglio_rosso)pMr++; if(r.sileggiando)pSil++; });
+  const pEur = pMr*PRICE_MR + (rows.length-pMr)*PRICE_STD;
+  h += '</tbody>';
+  h += `<tfoot><tr>
+      <td colspan="6">TOTALE — ${rows.length} partecipant${rows.length===1?'e':'i'}</td>
+      <td style="text-align:center;">${pPrat}</td>
+      <td style="text-align:center;">${pIstr}</td>
+      <td style="text-align:center;">${pMr}</td>
+      <td></td>
+      <td style="text-align:center;">${pSil}</td>
+      <td>€ ${pEur.toFixed(2)}</td>
+    </tr></tfoot>`;
+  h += '</table>';
 
   document.getElementById('printArea').innerHTML = h;
   window.print();
@@ -1624,6 +1678,8 @@ function confirmImport(mode) {
 // PETTORALI (assegnazione casuale — solo Miglio Rosso, da 1)
 // ============================================================
 const BIB_START = 1;
+const PRICE_MR = 20;
+const PRICE_STD = 15;
 
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
