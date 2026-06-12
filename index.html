@@ -429,6 +429,18 @@
   td.sel, th.sel { width: 30px; text-align: center; }
   td.sel input, th.sel input { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
 
+  /* TOTALI */
+  .totals-prices { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--gray-800); margin-bottom: 4px; }
+  .totals-prices input { width: 64px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: 4px 6px; font-size: 13px; font-family: inherit; }
+  .totals-prices input:focus { outline: none; border-color: var(--red); }
+  .totals-scope { color: var(--gray-400); font-size: 12px; margin-left: auto; }
+  .totals-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .totals-tbl th, .totals-tbl td { padding: 6px 10px; border-bottom: 1px solid var(--gray-100); text-align: right; }
+  .totals-tbl th:first-child, .totals-tbl td:first-child { text-align: left; }
+  .totals-tbl thead th { background: var(--gray-50); color: var(--gray-600); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; }
+  .totals-tbl tfoot td { font-weight: 700; color: var(--red-dark); border-top: 2px solid var(--gray-200); border-bottom: none; }
+  .totals-tbl tbody tr:hover { background: var(--gray-50); }
+
   /* PRINT AREA */
   #printArea { display: none; }
   @media print {
@@ -563,6 +575,7 @@
       <div class="table-actions">
         <button class="btn btn-sm btn-white-outline" onclick="addRow()">+ Riga</button>
         <button class="btn btn-sm btn-white-outline" onclick="assignBibs()">🎽 Pettorali</button>
+        <button class="btn btn-sm btn-white-outline" onclick="showTotals()">💶 Totali</button>
         <button class="btn btn-sm btn-white" onclick="printTable()">🖨 Stampa</button>
         <button class="btn btn-sm btn-white-outline" onclick="exportCSV()">⬇ CSV</button>
         <button class="btn btn-sm btn-white-outline" onclick="exportExcel()">⬇ Excel</button>
@@ -607,7 +620,6 @@
           <tr>
             <th class="sel"><input type="checkbox" id="selAll" onclick="toggleSelectAll(this.checked)" title="Seleziona tutti i visibili"></th>
             <th style="width:32px;">#</th>
-            <th style="width:54px; text-align:center;">Pett.</th>
             <th style="width:110px;">Cognome</th>
             <th style="width:90px;">Nome</th>
             <th style="width:80px;">Nato il</th>
@@ -616,6 +628,7 @@
             <th style="width:62px; text-align:center;">Pratic.</th>
             <th style="width:62px; text-align:center;">Istrut.</th>
             <th style="width:68px; text-align:center;">Miglio R.</th>
+            <th style="width:54px; text-align:center;">Pett.</th>
             <th style="width:68px; text-align:center;">Sileg.</th>
             <th style="width:120px;">Società</th>
             <th style="width:36px;"></th>
@@ -633,7 +646,7 @@
 
 </main>
 
-<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.4</footer>
+<footer>Silewalking ASD Albaredo Insieme · NW Schede OCR v1.5</footer>
 
 <!-- API KEY MODAL -->
 <div class="modal-backdrop" id="keyModal">
@@ -670,6 +683,23 @@
   </div>
 </div>
 
+<!-- TOTALI MODAL -->
+<div class="modal-backdrop" id="totalsModal">
+  <div class="modal" style="max-width:620px;">
+    <h3>💶 Conteggio quote</h3>
+    <div class="totals-prices">
+      <label>Miglio Rosso € <input type="number" id="priceMr" value="20" min="0" step="0.5" oninput="renderTotals()"></label>
+      <label>Altri € <input type="number" id="priceStd" value="15" min="0" step="0.5" oninput="renderTotals()"></label>
+      <span class="totals-scope" id="totalsScope"></span>
+    </div>
+    <div id="totalsBody" style="margin:0.5rem 0 1rem;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeTotalsModal()">Chiudi</button>
+      <button class="btn btn-success" onclick="exportTotalsCSV()">⬇ Esporta CSV</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -691,6 +721,8 @@ let uidCounter = 1;
 function newId() { return 'r' + (uidCounter++); }
 let pendingImport = null;
 let pendingBibs = null;
+let totalsRows = [];
+let totalsComputed = null;
 
 function saveSession() {
   try {
@@ -932,7 +964,6 @@ function renderTable() {
     tr.innerHTML = `
       <td class="sel"><input type="checkbox" ${selectedIds.has(r._id)?'checked':''} onchange="toggleSelect('${r._id}', this.checked)"></td>
       <td class="num">${pos+1}</td>
-      <td class="check"><input type="text" value="${esc(r.pettorale)}" onchange="allRows[${ri}].pettorale=this.value;saveSession()" style="max-width:46px;text-align:center;font-weight:600;"></td>
       <td><input type="text" value="${esc(r.cognome)}" onchange="allRows[${ri}].cognome=this.value;saveSession()"></td>
       <td><input type="text" value="${esc(r.nome)}" onchange="allRows[${ri}].nome=this.value;saveSession()"></td>
       <td><input type="text" value="${esc(r.nato_il)}" onchange="allRows[${ri}].nato_il=this.value;saveSession()" style="min-width:68px;"></td>
@@ -941,6 +972,7 @@ function renderTable() {
       <td class="check"><input type="checkbox" ${r.praticante?'checked':''} onchange="allRows[${ri}].praticante=this.checked;saveSession();updateStats()"></td>
       <td class="check"><input type="checkbox" ${r.istruttore?'checked':''} onchange="allRows[${ri}].istruttore=this.checked;saveSession();updateStats()"></td>
       <td class="check"><input type="checkbox" ${r.miglio_rosso?'checked':''} onchange="allRows[${ri}].miglio_rosso=this.checked;saveSession();updateStats()"></td>
+      <td class="check"><input type="text" value="${esc(r.pettorale)}" onchange="allRows[${ri}].pettorale=this.value;saveSession()" style="max-width:46px;text-align:center;font-weight:600;"></td>
       <td class="check"><input type="checkbox" ${r.sileggiando?'checked':''} onchange="allRows[${ri}].sileggiando=this.checked;saveSession();updateStats()"></td>
       <td class="societa-col"><input type="text" value="${esc(r.societa)}" onchange="allRows[${ri}].societa=this.value;saveSession();refreshFilterOptions()" placeholder="—"></td>
       <td class="action-col"><button class="btn-del" onclick="deleteRow(${ri})" title="Elimina">✕</button></td>
@@ -1161,6 +1193,72 @@ function bulkExportExcel() {
   doExportExcel(rows);
 }
 
+// ============================================================
+// TOTALI QUOTE (per ASD, su righe filtrate)
+// ============================================================
+function showTotals() {
+  const rows = getFilteredIndices().map(i => allRows[i]);
+  if (!rows.length) return toast('Nessuna riga (controlla i filtri)', 'error');
+  totalsRows = rows;
+  const af = describeFilters();
+  document.getElementById('totalsScope').textContent = af ? ('Su: ' + af) : 'Su tutti i partecipanti';
+  renderTotals();
+  document.getElementById('totalsModal').classList.add('open');
+}
+
+function computeTotals() {
+  const pMr = parseFloat(document.getElementById('priceMr').value) || 0;
+  const pStd = parseFloat(document.getElementById('priceStd').value) || 0;
+  const groups = {};
+  totalsRows.forEach(r => {
+    const key = (r.societa || '').trim() || '(senza società)';
+    if (!groups[key]) groups[key] = { n:0, mr:0, altri:0 };
+    groups[key].n++;
+    if (r.miglio_rosso) groups[key].mr++; else groups[key].altri++;
+  });
+  const names = Object.keys(groups).sort((a,b) => a.localeCompare(b,'it'));
+  const tot = { n:0, mr:0, altri:0, eur:0 };
+  const rows = names.map(name => {
+    const g = groups[name];
+    const eur = g.mr*pMr + g.altri*pStd;
+    tot.n += g.n; tot.mr += g.mr; tot.altri += g.altri; tot.eur += eur;
+    return { name, n:g.n, mr:g.mr, altri:g.altri, eur };
+  });
+  return { pMr, pStd, rows, tot };
+}
+
+function renderTotals() {
+  totalsComputed = computeTotals();
+  const { pMr, pStd, rows, tot } = totalsComputed;
+  let html = `<table class="totals-tbl"><thead><tr>
+    <th>Società</th><th>Part.</th><th>MR (€${pMr})</th><th>Altri (€${pStd})</th><th>Totale</th>
+    </tr></thead><tbody>`;
+  rows.forEach(r => {
+    html += `<tr><td>${esc(r.name)}</td><td>${r.n}</td><td>${r.mr}</td><td>${r.altri}</td><td>€ ${r.eur.toFixed(2)}</td></tr>`;
+  });
+  html += `</tbody><tfoot><tr><td>TOTALE</td><td>${tot.n}</td><td>${tot.mr}</td><td>${tot.altri}</td><td>€ ${tot.eur.toFixed(2)}</td></tr></tfoot></table>`;
+  document.getElementById('totalsBody').innerHTML = html;
+}
+
+function exportTotalsCSV() {
+  if (!totalsComputed) return;
+  const { pMr, pStd, rows, tot } = totalsComputed;
+  const out = [['Società','Partecipanti','Miglio Rosso','Altri','Totale €'].join(';')];
+  rows.forEach(r => {
+    out.push([r.name, r.n, r.mr, r.altri, r.eur.toFixed(2)].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(';'));
+  });
+  out.push(['TOTALE', tot.n, tot.mr, tot.altri, tot.eur.toFixed(2)].map(v => '"'+String(v)+'"').join(';'));
+  out.push('');
+  out.push('"Quote: Miglio Rosso ' + pMr + ' € / Altri ' + pStd + ' €"');
+  const blob = new Blob(['\uFEFF' + out.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+  downloadBlob(blob, 'NW_totali_quote_' + dateTag() + '.csv');
+  toast('Totali esportati ✓', 'success');
+}
+
+function closeTotalsModal() {
+  document.getElementById('totalsModal').classList.remove('open');
+}
+
 function esc(s) {
   return (s || '').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
@@ -1230,12 +1328,12 @@ function exportCSV() {
 }
 function doExportCSV(rowsF) {
   if (!rowsF.length) return toast('Nessuna riga da esportare', 'error');
-  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Sileggiando','Società'];
+  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Pettorale','Sileggiando','Società'];
   const rows = [headers.join(';')];
   rowsF.forEach((r, i) => {
     rows.push([
-      i+1, r.pettorale, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
-      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.sileggiando?'X':'', r.societa
+      i+1, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+      r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.pettorale, r.sileggiando?'X':'', r.societa
     ].map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(';'));
   });
   const blob = new Blob(['\uFEFF' + rows.join('\r\n')], {type:'text/csv;charset=utf-8;'});
@@ -1254,7 +1352,7 @@ function exportExcel() {
 function doExportExcel(rowsF) {
   if (!rowsF.length) return toast('Nessuna riga da esportare', 'error');
 
-  const headers = ['N','Pettorale','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Sileggiando','Società'];
+  const headers = ['N','Cognome','Nome','Nato il','Città','Taglia','Praticante','Istruttore','Miglio Rosso','Pettorale','Sileggiando','Società'];
   let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
   html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Partecipanti</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
   html += '<table border="1" style="border-collapse:collapse;">';
@@ -1266,8 +1364,8 @@ function doExportExcel(rowsF) {
   rowsF.forEach((r, i) => {
     const bg = i % 2 === 0 ? '#FFFFFF' : '#F9F9F9';
     html += `<tr style="background:${bg};">`;
-    [i+1, r.pettorale, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
-     r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.sileggiando?'X':'', r.societa
+    [i+1, r.cognome, r.nome, r.nato_il, r.citta, r.taglia,
+     r.praticante?'X':'', r.istruttore?'X':'', r.miglio_rosso?'X':'', r.pettorale, r.sileggiando?'X':'', r.societa
     ].forEach(v => html += `<td style="padding:5px 10px;">${String(v||'')}</td>`);
     html += '</tr>';
   });
@@ -1300,17 +1398,16 @@ function doPrint(rows, scopeText) {
       ${scopeText ? `<div class="print-meta">${esc(scopeText)}</div>` : ''}
     </div>
     <table><colgroup>
-      <col style="width:3%"><col style="width:6%"><col style="width:13%"><col style="width:11%">
-      <col style="width:9%"><col style="width:13%"><col style="width:5%"><col style="width:5%">
-      <col style="width:5%"><col style="width:6%"><col style="width:6%"><col style="width:18%">
+      <col style="width:3%"><col style="width:13%"><col style="width:11%"><col style="width:9%">
+      <col style="width:13%"><col style="width:5%"><col style="width:5%"><col style="width:5%">
+      <col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:18%">
     </colgroup><thead><tr>
-      <th>#</th><th>Pett.</th><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Città</th><th>Taglia</th>
-      <th>Pratic.</th><th>Istrut.</th><th>Miglio R.</th><th>Sileg.</th><th>Società</th>
+      <th>#</th><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Città</th><th>Taglia</th>
+      <th>Pratic.</th><th>Istrut.</th><th>Miglio R.</th><th>Pett.</th><th>Sileg.</th><th>Società</th>
     </tr></thead><tbody>`;
   rows.forEach((r, i) => {
     h += `<tr>
       <td style="text-align:center;">${i+1}</td>
-      <td style="text-align:center;font-weight:700;">${esc(r.pettorale)}</td>
       <td>${esc(r.cognome)}</td>
       <td>${esc(r.nome)}</td>
       <td>${esc(r.nato_il)}</td>
@@ -1319,6 +1416,7 @@ function doPrint(rows, scopeText) {
       <td style="text-align:center;">${ck(r.praticante)}</td>
       <td style="text-align:center;">${ck(r.istruttore)}</td>
       <td style="text-align:center;">${ck(r.miglio_rosso)}</td>
+      <td style="text-align:center;font-weight:700;">${esc(r.pettorale)}</td>
       <td style="text-align:center;">${ck(r.sileggiando)}</td>
       <td>${esc(r.societa)}</td>
     </tr>`;
@@ -1643,6 +1741,9 @@ document.addEventListener('click', function(e) {
 });
 document.getElementById('bibModal').addEventListener('click', function(e) {
   if (e.target === this) closeBibModal();
+});
+document.getElementById('totalsModal').addEventListener('click', function(e) {
+  if (e.target === this) closeTotalsModal();
 });
 </script>
 </body>
